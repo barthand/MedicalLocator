@@ -2,11 +2,9 @@ package put.medicallocator.io.sqlite;
 
 import java.util.Map;
 
+import put.medicallocator.io.Facility;
 import android.database.Cursor;
 import android.location.Location;
-
-import put.medicallocator.io.Facility;
-import put.medicallocator.io.sqlite.DatabaseContract.FacilityColumns;
 
 public class TypeConverter {
 	/**
@@ -19,23 +17,23 @@ public class TypeConverter {
 		
 		Facility result = new Facility();
 		Integer columnIndex = -1;
-		if ((columnIndex = columnMapping.get(FacilityColumns._ID)) != null) {
+		if ((columnIndex = columnMapping.get(Facility.Columns._ID)) != null) {
 			result.setId(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(FacilityColumns.NAME)) != null) {
+		else if ((columnIndex = columnMapping.get(Facility.Columns.NAME)) != null) {
 			result.setName(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(FacilityColumns.ADDRESS)) != null) {
+		else if ((columnIndex = columnMapping.get(Facility.Columns.ADDRESS)) != null) {
 			result.setAddress(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(FacilityColumns.PHONE)) != null) {
+		else if ((columnIndex = columnMapping.get(Facility.Columns.PHONE)) != null) {
 			result.setPhone(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(FacilityColumns.EMAIL)) != null) {
+		else if ((columnIndex = columnMapping.get(Facility.Columns.EMAIL)) != null) {
 			result.setEmail(cursor.getString(columnIndex));
 		}
-		else if (((columnIndex = columnMapping.get(FacilityColumns.LONGITUDE)) != null) && 
-				((columnIndex = columnMapping.get(FacilityColumns.LATITUDE)) != null)) {
+		else if (((columnIndex = columnMapping.get(Facility.Columns.LONGITUDE)) != null) && 
+				((columnIndex = columnMapping.get(Facility.Columns.LATITUDE)) != null)) {
 			final double longitude = cursor.getDouble(columnIndex);
 			final double latitude = cursor.getDouble(columnIndex);
 			final Location location = new Location("DatabaseProvider");

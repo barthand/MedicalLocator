@@ -5,12 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import put.medicallocator.io.Facility;
 import put.medicallocator.io.IFacilityProvider;
-import put.medicallocator.io.sqlite.DatabaseContract.FacilityColumns;
 import put.medicallocator.io.sqlite.DatabaseContract.Tables;
 import android.content.Context;
 import android.database.Cursor;
@@ -18,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
+import android.os.Handler;
 import android.util.Log;
 
 /**
@@ -29,19 +28,27 @@ public class DatabaseProvider implements IFacilityProvider {
 	private static final String TAG = "DatabaseProvider";
 	
 	private DatabaseHelper dbHelper;
+	private AsyncQueryListener listener;
+	private Handler handler;
 	
 	public DatabaseProvider(Context context) {
 		dbHelper = new DatabaseHelper(context);
 		dbHelper.createAndCopyDBIfDoesNotExist();
 	}
 
-	public Cursor getFacilitiesWithinArea(Location upperLeftLocation,
-			Location lowerDownLocation) throws Exception {
+	public void setAsyncParameters(AsyncQueryListener listener, Handler handler) {
+		this.listener = listener;
+		this.handler = handler;
+	}
+	
+	public Cursor getFacilitiesWithinArea(boolean async, Location upperLeftLocation,
+			Location lowerDownLocation) 
+	throws Exception {
 		final String selection = 
-				FacilityColumns.LATITUDE + " < ? AND " +
-				FacilityColumns.LONGITUDE + " > ? AND " +
-				FacilityColumns.LATITUDE + " > ? AND " +
-				FacilityColumns.LONGITUDE + " < ?";
+				Facility.Columns.LATITUDE + " < ? AND " +
+				Facility.Columns.LONGITUDE + " > ? AND " +
+				Facility.Columns.LATITUDE + " > ? AND " +
+				Facility.Columns.LONGITUDE + " < ?";
 		final String[] selectionArgs = new String[] { 
 				Double.toString(upperLeftLocation.getLatitude()),
 				Double.toString(upperLeftLocation.getLongitude()),
@@ -50,13 +57,15 @@ public class DatabaseProvider implements IFacilityProvider {
 		};
 
 		final Cursor cursor = 
-			queryDB(Tables.FACILITY, FacilityQuery.PROJECTION, selection, selectionArgs);
+			queryDB(async, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
+					selection, selectionArgs);
 		
 		/* Return the Cursor */
 		return cursor;
 	}
 	
-	public Cursor getFacilitiesWithinRadius(Location startLocation, int radius) throws Exception {
+	public Cursor getFacilitiesWithinRadius(boolean async, Location startLocation, int radius) 
+	throws Exception {
 		/* 
 		 * Due to lack of trigonometric function in SQLite side,
 		 * this can't be implemented. 
@@ -64,12 +73,13 @@ public class DatabaseProvider implements IFacilityProvider {
 		throw new Exception("Unsupported operation in this provider.");
 	}
 
-	public Cursor getFacilitiesWithinAddress(String address) {
-		final String selection = "lower(" + FacilityColumns.ADDRESS +") LIKE ?";
+	public Cursor getFacilitiesWithinAddress(boolean async, String address) {
+		final String selection = "lower(" + Facility.Columns.ADDRESS +") LIKE ?";
 		final String[] selectionArgs = new String[] { "%" + address + "%".toLowerCase() };
 
 		final Cursor cursor = 
-			queryDB(Tables.FACILITY, FacilityQuery.PROJECTION, selection, selectionArgs);
+			queryDB(async, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
+					selection, selectionArgs);
 		
 		/* Return the Cursor */
 		return cursor;
@@ -77,15 +87,16 @@ public class DatabaseProvider implements IFacilityProvider {
 
 	public Facility getFacility(Location location) {
 		final String selection = 
-				FacilityColumns.LATITUDE + " = ? AND " +
-				FacilityColumns.LONGITUDE + " = ?";
+				Facility.Columns.LATITUDE + " = ? AND " +
+				Facility.Columns.LONGITUDE + " = ?";
 		final String[] selectionArgs = new String[] { 
 				Double.toString(location.getLatitude()),
 				Double.toString(location.getLongitude()),
 		};
 		
 		final Cursor cursor = 
-			queryDB(Tables.FACILITY, FacilityQuery.PROJECTION, selection, selectionArgs);
+			queryDB(false, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
+					selection, selectionArgs);
 		
 		if (!cursor.moveToFirst()) return null;
 		if (cursor.getCount() > 1) {
@@ -93,7 +104,7 @@ public class DatabaseProvider implements IFacilityProvider {
 					"although it was meant to return single row. Returning first row.");
 		}
 		
-		final Map<String, Integer> columnMapping = createColumnMapping(FacilityQuery.PROJECTION);
+		final Map<String, Integer> columnMapping = Facility.getDefaultColumnMapping();
 		final Facility result = 
 			TypeConverter.getFacilityFromCursorCurrentPosition(columnMapping, cursor);
 		
@@ -108,28 +119,47 @@ public class DatabaseProvider implements IFacilityProvider {
 		return false;
 	}
 	
-	public static Map<String, Integer> createColumnMapping(String[] projection) {
-		HashMap<String, Integer> result = new HashMap<String, Integer>();
-		for (int i=0; i<projection.length; i++) {
-			result.put(projection[i], i);
-		}
-		return result;
-	}
-
-	private Cursor queryDB(String table, String[] projection, 
-			String selection, String[] selectionArgs) {
+	private Cursor queryDB(boolean async, final int token, final String table, 
+			final String[] projection, 
+			final String selection, final String[] selectionArgs) {
 		Log.d(TAG, "Starting query -- " +
 				"table[" + table + "], " +
 				"projection[" + Arrays.toString(projection) + "], " +
 				"selection[" + selection + "], selectionArgs[" + Arrays.toString(selectionArgs) + "]");
 		
-		/* Query the database */
-		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		final Cursor cursor = 
-			db.query(table, projection, selection, selectionArgs, null, null, null); 
-		
-		/* Return the Cursor */
-		return cursor;
+		if (async) {
+			/* Create and execute the new Thread */
+			new Thread(new Runnable() {
+				public void run() {
+					/* Query the database */
+					SQLiteDatabase db = dbHelper.getReadableDatabase();
+					final Cursor cursor = 
+						db.query(table, projection, selection, selectionArgs, null, null, null);
+					
+					/* Make a callback from the handler's Thread */
+					if (listener != null && handler != null) {
+						handler.post(new Runnable() {
+							public void run() {
+								final Map<String, Integer> mapping = 
+									Facility.getDefaultColumnMapping();
+								listener.onQueryComplete(token, cursor, mapping);
+							}
+						});
+					}
+				}
+			}).start();
+			
+			/* We have to return null, result will be returned by callback */
+			return null;
+		} else {
+			/* Query the database */
+			SQLiteDatabase db = dbHelper.getReadableDatabase();
+			final Cursor cursor = 
+				db.query(table, projection, selection, selectionArgs, null, null, null); 
+			
+			/* Return the Cursor */
+			return cursor;
+		}
 	}
 	
 	/**
@@ -153,11 +183,13 @@ public class DatabaseProvider implements IFacilityProvider {
 			Log.d(TAG, "Executing onCreate()");
 			/* Due to copying the DB from the local assets/ folder, this is commented out. */
 			/*db.execSQL("CREATE TABLE " + Tables.FACILITY + " ("
-	                + FacilityColumns._ID + " " + FacilityColumnsParams.PARAM_ID + ","
-	                + FacilityColumns.NAME + " " + FacilityColumnsParams.PARAM_NAME + ","
-	                + FacilityColumns.ADDRESS + " " + FacilityColumnsParams.PARAM_ADDRESS + ","
-	                + FacilityColumns.PHONE + " " + FacilityColumnsParams.PARAM_PHONE + ","
-	                + FacilityColumns.EMAIL + " " + FacilityColumnsParams.PARAM_EMAIL + ","
+	                + Facility.Columns._ID + " " + FacilityColumnsParams.PARAM_ID + ","
+	                + Facility.Columns.NAME + " " + FacilityColumnsParams.PARAM_NAME + ","
+	                + Facility.Columns.ADDRESS + " " + FacilityColumnsParams.PARAM_ADDRESS + ","
+	                + Facility.Columns.PHONE + " " + FacilityColumnsParams.PARAM_PHONE + ","
+	                + Facility.Columns.EMAIL + " " + FacilityColumnsParams.PARAM_EMAIL + ","
+	                + Facility.Columns.LONGITUDE + " " + FacilityColumnsParams.PARAM_LONGITUDE + ","
+	                + Facility.Columns.LATITUDE + " " + FacilityColumnsParams.PARAM_LATITUDE + ","
 	                + ")");	*/
 		}
 
@@ -239,17 +271,4 @@ public class DatabaseProvider implements IFacilityProvider {
 	    	myInput.close();
 	    }
 	}
-
-	public interface FacilityQuery {
-		String[] PROJECTION = new String[] {
-				FacilityColumns._ID,
-				FacilityColumns.NAME,
-				FacilityColumns.ADDRESS,
-				FacilityColumns.PHONE,
-				FacilityColumns.EMAIL,
-				FacilityColumns.LONGITUDE,
-				FacilityColumns.LATITUDE
-		};
-	}
-
 }
