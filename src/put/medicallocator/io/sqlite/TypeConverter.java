@@ -16,6 +16,7 @@ public class TypeConverter {
 		if (columnMapping.isEmpty()) return null;
 		
 		Facility result = new Facility();
+		final Location location = new Location("DatabaseProvider");
 		Integer columnIndex = -1;
 		if ((columnIndex = columnMapping.get(Facility.Columns._ID)) != null) {
 			result.setId(cursor.getString(columnIndex));
@@ -32,16 +33,15 @@ public class TypeConverter {
 		else if ((columnIndex = columnMapping.get(Facility.Columns.EMAIL)) != null) {
 			result.setEmail(cursor.getString(columnIndex));
 		}
-		else if (((columnIndex = columnMapping.get(Facility.Columns.LONGITUDE)) != null) && 
-				((columnIndex = columnMapping.get(Facility.Columns.LATITUDE)) != null)) {
-			final double longitude = cursor.getDouble(columnIndex);
+		else if ((columnIndex = columnMapping.get(Facility.Columns.LATITUDE)) != null) {
 			final double latitude = cursor.getDouble(columnIndex);
-			final Location location = new Location("DatabaseProvider");
-			location.setLongitude(longitude);
 			location.setLatitude(latitude);
-			result.setLocation(location);
 		}
-
+		else if ((columnIndex = columnMapping.get(Facility.Columns.LONGITUDE)) != null) {
+			final double longitude = cursor.getDouble(columnIndex);
+			location.setLongitude(longitude);
+		}
+		result.setLocation(location);
 		return result;
 	}
 }

@@ -17,8 +17,8 @@ public class Facility {
 		public static final String ADDRESS = "address";
 		public static final String PHONE = "phone";
 		public static final String EMAIL = "email";
-		public static final String LONGITUDE = "longitude";
 		public static final String LATITUDE = "latitude";
+		public static final String LONGITUDE = "longitude";
 	}
 	
 	private String id;
@@ -105,8 +105,8 @@ public class Facility {
 				Facility.Columns.ADDRESS,
 				Facility.Columns.PHONE,
 				Facility.Columns.EMAIL,
-				Facility.Columns.LONGITUDE,
 				Facility.Columns.LATITUDE,
+				Facility.Columns.LONGITUDE,
 		};
 	}
 }

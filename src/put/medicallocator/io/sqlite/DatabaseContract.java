@@ -19,8 +19,8 @@ public class DatabaseContract {
 		String PARAM_ADDRESS = "TEXT NOT NULL";
 		String PARAM_PHONE = "TEXT";
 		String PARAM_EMAIL = "TEXT";
-		String PARAM_LONGITUDE  = "REAL";
 		String PARAM_LATITUDE = "REAL";
+		String PARAM_LONGITUDE  = "REAL";
 	}
 	
 	private DatabaseContract() {

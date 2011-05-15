@@ -188,8 +188,8 @@ public class DatabaseProvider implements IFacilityProvider {
 	                + Facility.Columns.ADDRESS + " " + FacilityColumnsParams.PARAM_ADDRESS + ","
 	                + Facility.Columns.PHONE + " " + FacilityColumnsParams.PARAM_PHONE + ","
 	                + Facility.Columns.EMAIL + " " + FacilityColumnsParams.PARAM_EMAIL + ","
-	                + Facility.Columns.LONGITUDE + " " + FacilityColumnsParams.PARAM_LONGITUDE + ","
 	                + Facility.Columns.LATITUDE + " " + FacilityColumnsParams.PARAM_LATITUDE + ","
+	                + Facility.Columns.LONGITUDE + " " + FacilityColumnsParams.PARAM_LONGITUDE + ","
 	                + ")");	*/
 		}
 
