@@ -28,7 +28,6 @@ public class DatabaseProvider implements IFacilityProvider {
 	private static final String TAG = "DatabaseProvider";
 	
 	private DatabaseHelper dbHelper;
-	private AsyncQueryListener listener;
 	private Handler handler;
 	
 	public DatabaseProvider(Context context) {
@@ -36,35 +35,35 @@ public class DatabaseProvider implements IFacilityProvider {
 		dbHelper.createAndCopyDBIfDoesNotExist();
 	}
 
-	public void setAsyncParameters(AsyncQueryListener listener, Handler handler) {
-		this.listener = listener;
+	public void setAsyncParameters(Handler handler) {
 		this.handler = handler;
 	}
 	
-	public Cursor getFacilitiesWithinArea(boolean async, Location upperLeftLocation,
-			Location lowerDownLocation) 
+	public Cursor getFacilitiesWithinArea(AsyncQueryListener listener, 
+			Location lowerLeftLocation, Location upperRightLocation) 
 	throws Exception {
 		final String selection = 
-				Facility.Columns.LATITUDE + " < ? AND " +
-				Facility.Columns.LONGITUDE + " > ? AND " +
 				Facility.Columns.LATITUDE + " > ? AND " +
+				Facility.Columns.LONGITUDE + " > ? AND " +
+				Facility.Columns.LATITUDE + " < ? AND " +
 				Facility.Columns.LONGITUDE + " < ?";
 		final String[] selectionArgs = new String[] { 
-				Double.toString(upperLeftLocation.getLatitude()),
-				Double.toString(upperLeftLocation.getLongitude()),
-				Double.toString(lowerDownLocation.getLatitude()),
-				Double.toString(lowerDownLocation.getLongitude())
+				Double.toString(lowerLeftLocation.getLatitude()),
+				Double.toString(lowerLeftLocation.getLongitude()),
+				Double.toString(upperRightLocation.getLatitude()),
+				Double.toString(upperRightLocation.getLongitude())
 		};
 
 		final Cursor cursor = 
-			queryDB(async, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
+			queryDB(listener, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
 					selection, selectionArgs);
 		
 		/* Return the Cursor */
 		return cursor;
 	}
 	
-	public Cursor getFacilitiesWithinRadius(boolean async, Location startLocation, int radius) 
+	public Cursor getFacilitiesWithinRadius(AsyncQueryListener listener, 
+			Location startLocation, int radius) 
 	throws Exception {
 		/* 
 		 * Due to lack of trigonometric function in SQLite side,
@@ -73,12 +72,12 @@ public class DatabaseProvider implements IFacilityProvider {
 		throw new Exception("Unsupported operation in this provider.");
 	}
 
-	public Cursor getFacilitiesWithinAddress(boolean async, String address) {
+	public Cursor getFacilitiesWithinAddress(AsyncQueryListener listener, String address) {
 		final String selection = "lower(" + Facility.Columns.ADDRESS +") LIKE ?";
 		final String[] selectionArgs = new String[] { "%" + address + "%".toLowerCase() };
 
 		final Cursor cursor = 
-			queryDB(async, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
+			queryDB(listener, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
 					selection, selectionArgs);
 		
 		/* Return the Cursor */
@@ -95,7 +94,7 @@ public class DatabaseProvider implements IFacilityProvider {
 		};
 		
 		final Cursor cursor = 
-			queryDB(false, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
+			queryDB(null, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
 					selection, selectionArgs);
 		
 		if (!cursor.moveToFirst()) return null;
@@ -119,7 +118,7 @@ public class DatabaseProvider implements IFacilityProvider {
 		return false;
 	}
 	
-	private Cursor queryDB(boolean async, final int token, final String table, 
+	private Cursor queryDB(final AsyncQueryListener listener, final int token, final String table, 
 			final String[] projection, 
 			final String selection, final String[] selectionArgs) {
 		Log.d(TAG, "Starting query -- " +
@@ -127,7 +126,8 @@ public class DatabaseProvider implements IFacilityProvider {
 				"projection[" + Arrays.toString(projection) + "], " +
 				"selection[" + selection + "], selectionArgs[" + Arrays.toString(selectionArgs) + "]");
 		
-		if (async) {
+		/* Sync/async? */
+		if (listener != null) {
 			/* Create and execute the new Thread */
 			new Thread(new Runnable() {
 				public void run() {
@@ -137,14 +137,15 @@ public class DatabaseProvider implements IFacilityProvider {
 						db.query(table, projection, selection, selectionArgs, null, null, null);
 					
 					/* Make a callback from the handler's Thread */
-					if (listener != null && handler != null) {
+					final Map<String, Integer> mapping = Facility.getDefaultColumnMapping();
+					if (handler != null) {
 						handler.post(new Runnable() {
 							public void run() {
-								final Map<String, Integer> mapping = 
-									Facility.getDefaultColumnMapping();
 								listener.onQueryComplete(token, cursor, mapping);
 							}
 						});
+					} else {
+						listener.onQueryComplete(token, cursor, mapping);
 					}
 				}
 			}).start();
