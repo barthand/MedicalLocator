@@ -32,7 +32,6 @@ public class DatabaseProvider implements IFacilityProvider {
 	
 	public DatabaseProvider(Context context) {
 		dbHelper = new DatabaseHelper(context);
-		dbHelper.createAndCopyDBIfDoesNotExist();
 	}
 
 	public void setAsyncParameters(Handler handler) {
@@ -177,6 +176,7 @@ public class DatabaseProvider implements IFacilityProvider {
 		public DatabaseHelper(Context context) {
 			super(context, DatabaseContract.DATABASE_NAME, null, DatabaseContract.DATABASE_VERSION);
 			this.context = context;
+			createAndCopyDBIfDoesNotExist();
 		}
 
 		@Override
@@ -223,6 +223,8 @@ public class DatabaseProvider implements IFacilityProvider {
 	    			copyDB();
 	    		} catch (IOException e) {
 	        		throw new Error("Error during copying the database.");
+	        	} finally {
+	        		close();
 	        	}
 	    	}
 	    }
@@ -236,9 +238,11 @@ public class DatabaseProvider implements IFacilityProvider {
 	    	try{
 	    		String myPath = DB_PATH + DatabaseContract.DATABASE_NAME;
 	    		checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
-	    		checkDB.close();
 	    	} catch (SQLiteException e) {
 	    		// Database doesn't exist yet.
+	    	} finally {
+	    		if (checkDB != null)
+	    			checkDB.close();
 	    	}
 	    	return checkDB != null ? true : false;
 	    }
@@ -251,7 +255,12 @@ public class DatabaseProvider implements IFacilityProvider {
 	    private void copyDB() throws IOException {
 	    	Log.d(TAG, "Overwriting the empty DB with the deployed along with the application one.");
 	    	// Open the local-stored DB as the input stream.
-	    	InputStream myInput = context.getAssets().open(DatabaseContract.DATABASE_NAME);
+	    	InputStream myInput = context.getAssets().open(DatabaseContract.DATABASE_NAME + ".mp3");
+	    	// The .mp3 suffix explanation: What for? To cheat Android and avoid 
+	    	// "Data exceeds UNCOMPRESS_DATA_MAX" (bigger than 1MB) problem. Aapt doesn't try
+	    	// to compress files which are meant to be already compressed in common sense.
+	    	// TODO: Split the DB from assets/ folder into the 1MB chunks 
+	    	// and join them here afterwards.
 	 
 	    	// Path to the recently created empty DB.
 	    	String outFileName = DB_PATH + DatabaseContract.DATABASE_NAME;

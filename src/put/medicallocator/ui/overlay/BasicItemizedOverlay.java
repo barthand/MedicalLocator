@@ -12,7 +12,7 @@ import com.google.android.maps.OverlayItem;
 public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 	protected Context context;
-	private ArrayList<OverlayItem> overlays = new ArrayList<OverlayItem>();
+	private ArrayList<FacilityOverlayItem> overlays = new ArrayList<FacilityOverlayItem>();
 
 	public BasicItemizedOverlay(Drawable drawable) {
 		super(boundCenterBottom(drawable));
@@ -23,7 +23,7 @@ public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 		this.context = context;
 	}
 
-	public void addOverlay(OverlayItem overlayItem) {
+	public void addOverlay(FacilityOverlayItem overlayItem) {
 		overlays.add(overlayItem);
 	}
 	
@@ -43,10 +43,10 @@ public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 	@Override
 	protected boolean onTap(int index) {
-		OverlayItem item = overlays.get(index);
+		FacilityOverlayItem item = overlays.get(index);
 		AlertDialog.Builder dialog = new AlertDialog.Builder(context);
 		dialog.setTitle(item.getTitle());
-		dialog.setMessage(item.getSnippet());
+		dialog.setMessage(item.getFacility().getAddress());
 		dialog.show();
 		return true;
 	}

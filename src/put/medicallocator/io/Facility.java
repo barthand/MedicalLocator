@@ -3,8 +3,9 @@ package put.medicallocator.io;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.location.Location;
 import android.provider.BaseColumns;
+
+import com.google.android.maps.GeoPoint;
 
 public class Facility {
 
@@ -26,7 +27,7 @@ public class Facility {
 	private String address;
 	private String phone;
 	private String email;
-	private Location location;
+	private GeoPoint location;
 	
 	public String getId() {
 		return id;
@@ -68,11 +69,11 @@ public class Facility {
 		this.email = email;
 	}
 
-	public Location getLocation() {
+	public GeoPoint getLocation() {
 		return location;
 	}
 
-	public void setLocation(Location location) {
+	public void setLocation(GeoPoint location) {
 		this.location = location;
 	}
 

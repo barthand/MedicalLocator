@@ -9,6 +9,7 @@ import put.medicallocator.io.IFacilityProvider;
 import put.medicallocator.io.IFacilityProvider.AsyncQueryListener;
 import put.medicallocator.io.IFacilityProviderManager;
 import put.medicallocator.ui.overlay.BasicItemizedOverlay;
+import put.medicallocator.ui.overlay.FacilityOverlayItem;
 import put.medicallocator.utils.GeoUtils;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -16,13 +17,13 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
-import com.google.android.maps.OverlayItem;
 
 public class ActivityMain extends MapActivity implements AsyncQueryListener {
 
@@ -50,6 +51,9 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		handler = new Handler();
 
         /* Initialize the IFacilityProvider */
+		Toast.makeText(this, 
+				getResources().getString(R.string.activitymain_initializing_provider), 
+				Toast.LENGTH_SHORT).show();
         IFacilityProviderManager.getInstance(this);
         
         /* Set the basic attributes of the MapView */
@@ -145,10 +149,19 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			do {
 				final String name = cursor.getString(columnMapping.get(Facility.Columns.NAME));
 				final String address = cursor.getString(columnMapping.get(Facility.Columns.ADDRESS));
+				final String phone = cursor.getString(columnMapping.get(Facility.Columns.PHONE));
+				final String email  = cursor.getString(columnMapping.get(Facility.Columns.EMAIL));
 				final double latitude = cursor.getDouble(columnMapping.get(Facility.Columns.LATITUDE));
 				final double longitude = cursor.getDouble(columnMapping.get(Facility.Columns.LONGITUDE));
 				final GeoPoint geoPoint = GeoUtils.convertToGeoPoint(latitude, longitude);
-				final OverlayItem overlayItem = new OverlayItem(geoPoint, name, address);
+				
+				final Facility facility = new Facility();
+				facility.setName(name);
+				facility.setAddress(address);
+				facility.setPhone(phone);
+				facility.setEmail(email);
+				facility.setLocation(geoPoint);
+				final FacilityOverlayItem overlayItem = new FacilityOverlayItem(facility, geoPoint);
 				itemizedOverlay.addOverlay(overlayItem);
 			} while (cursor.moveToNext());
 			Log.d(TAG, "Overlays created. It took: " + (System.currentTimeMillis() - start) + " ms");

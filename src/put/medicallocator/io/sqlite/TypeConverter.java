@@ -3,8 +3,8 @@ package put.medicallocator.io.sqlite;
 import java.util.Map;
 
 import put.medicallocator.io.Facility;
+import put.medicallocator.utils.GeoUtils;
 import android.database.Cursor;
-import android.location.Location;
 
 public class TypeConverter {
 	/**
@@ -16,7 +16,7 @@ public class TypeConverter {
 		if (columnMapping.isEmpty()) return null;
 		
 		Facility result = new Facility();
-		final Location location = new Location("DatabaseProvider");
+		double latitude = Double.MIN_VALUE, longitude = Double.MIN_VALUE;
 		Integer columnIndex = -1;
 		if ((columnIndex = columnMapping.get(Facility.Columns._ID)) != null) {
 			result.setId(cursor.getString(columnIndex));
@@ -34,14 +34,14 @@ public class TypeConverter {
 			result.setEmail(cursor.getString(columnIndex));
 		}
 		else if ((columnIndex = columnMapping.get(Facility.Columns.LATITUDE)) != null) {
-			final double latitude = cursor.getDouble(columnIndex);
-			location.setLatitude(latitude);
+			latitude = cursor.getDouble(columnIndex);
 		}
 		else if ((columnIndex = columnMapping.get(Facility.Columns.LONGITUDE)) != null) {
-			final double longitude = cursor.getDouble(columnIndex);
-			location.setLongitude(longitude);
+			longitude = cursor.getDouble(columnIndex);
 		}
-		result.setLocation(location);
+		if (latitude != Double.MIN_VALUE && longitude != Double.MIN_VALUE) {
+			result.setLocation(GeoUtils.convertToGeoPoint(latitude, longitude));
+		}
 		return result;
 	}
 }

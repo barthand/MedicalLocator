@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, MedicalLocator!</string>
     <string name="app_name">Medical Locator</string>
+    <string name="activitymain_initializing_provider">Initializing Data Provider. Please wait a moment..</string>
 </resources>
