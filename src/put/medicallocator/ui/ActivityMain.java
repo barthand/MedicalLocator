@@ -27,6 +27,8 @@ import com.google.android.maps.Overlay;
 
 public class ActivityMain extends MapActivity implements AsyncQueryListener {
 
+	// TODO: Use the savedInstanceBundle to check if Map, etc. was initialized
+	
 	private static final String TAG = ActivityMain.class.getName(); 
 	
 	/** Defines the start GeoPoint. Yeah, let's all do the Poznan! ;) */
@@ -39,7 +41,6 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     private int noChangeCounter = 0;
     
     private Handler handler;
-
     
 	/** Called when the activity is first created. */
     @Override
@@ -51,18 +52,21 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		handler = new Handler();
 
         /* Initialize the IFacilityProvider */
-		Toast.makeText(this, 
+		if (!IFacilityProviderManager.isInitialized()) {
+			Toast.makeText(this, 
 				getResources().getString(R.string.activitymain_initializing_provider), 
 				Toast.LENGTH_SHORT).show();
-        IFacilityProviderManager.getInstance(this);
+			IFacilityProviderManager.getInstance(this);
+		}
         
         /* Set the basic attributes of the MapView */
 		mapView = (MapView) findViewById(R.id.map_view);
 		mapView.setBuiltInZoomControls(true);
+		
 		final MapController mapController = mapView.getController();
 		mapController.setCenter(START_GEOPOINT);
 		mapController.setZoom(START_ZOOM_LEVEL);
-		
+	
 		/* Post query job */
 		handler.post(doQueryIfRequired);
     }

@@ -8,5 +8,15 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
+    
+    <style name="DialogButton">
+        <item name="android:layout_height">40dip</item>
+    </style>
+
+    <style name="DialogText">
+		<item name="android:textColor">@color/dialog_text</item>
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+    </style>
 
 </resources>

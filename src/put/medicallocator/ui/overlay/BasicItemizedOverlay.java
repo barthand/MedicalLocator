@@ -2,9 +2,13 @@ package put.medicallocator.ui.overlay;
 
 import java.util.ArrayList;
 
+import put.medicallocator.R;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
@@ -44,10 +48,25 @@ public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 	@Override
 	protected boolean onTap(int index) {
 		FacilityOverlayItem item = overlays.get(index);
-		AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-		dialog.setTitle(item.getTitle());
-		dialog.setMessage(item.getFacility().getAddress());
+
+		LayoutInflater inflater = 
+			(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
+
+		final TextView addressTextView = (TextView) layout.findViewById(R.id.address_textview); 
+		final TextView phoneTextView = (TextView) layout.findViewById(R.id.phone_textview); 
+		final TextView emailTextView = (TextView) layout.findViewById(R.id.email_textview); 
+
+		addressTextView.setText(item.getFacility().getAddress());
+		phoneTextView.setText(item.getFacility().getPhone());
+		emailTextView.setText(item.getFacility().getEmail());
+		
+		final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setView(layout);
+		final AlertDialog dialog = builder.create();
+		dialog.setTitle(item.getFacility().getName());
 		dialog.show();
+		
 		return true;
 	}
 

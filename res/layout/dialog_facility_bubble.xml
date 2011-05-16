@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/dialog_root"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dip"
+    >
+    <TextView style="@style/DialogText" android:id="@+id/address_textview"/>
+    <TextView style="@style/DialogText" android:id="@+id/phone_textview"/>
+    <TextView style="@style/DialogText" android:id="@+id/email_textview"/>
+    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="15dip">
+        <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_call" android:id="@+id/call_button" android:layout_width="0dip" android:layout_weight="1"></Button>
+        <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_email" android:id="@+id/email_button" android:layout_width="0dip" android:layout_weight="1"></Button>
+    </LinearLayout>
+</LinearLayout>
