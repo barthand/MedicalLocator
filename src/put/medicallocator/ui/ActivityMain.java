@@ -41,6 +41,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     private int noChangeCounter = 0;
     
     private Handler handler;
+    private State state;
     
 	/** Called when the activity is first created. */
     @Override
@@ -51,6 +52,15 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		/* Initialize a handler here to ensure that it is attached to the UI thread */
 		handler = new Handler();
 
+		/* Do we have previous instance data? */
+		state = (State) getLastNonConfigurationInstance();
+		final boolean hasPreviosState = state == null ? false : true;
+		
+		if (!hasPreviosState) {
+			// This initializes also the default values. 
+			state = new State();
+		}
+		
         /* Initialize the IFacilityProvider */
 		if (!IFacilityProviderManager.isInitialized()) {
 			Toast.makeText(this, 
@@ -64,11 +74,19 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		mapView.setBuiltInZoomControls(true);
 		
 		final MapController mapController = mapView.getController();
-		mapController.setCenter(START_GEOPOINT);
-		mapController.setZoom(START_ZOOM_LEVEL);
-	
+		mapController.setCenter(state.currentPoint);
+		mapController.setZoom(state.zoomLevel);
+
 		/* Post query job */
 		handler.post(doQueryIfRequired);
+    }
+    
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+    	handler.removeCallbacks(doQueryIfRequired);
+    	state.currentPoint = mapView.getMapCenter();
+    	state.zoomLevel = mapView.getZoomLevel();
+    	return state;
     }
     
 	@Override
@@ -190,4 +208,15 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			}
 		});*/
 		cursor.close();
-	}}
+	}
+	
+	private class State {
+		public GeoPoint currentPoint;
+		public int zoomLevel;
+		
+		private State () {
+			currentPoint = START_GEOPOINT;
+			zoomLevel = START_ZOOM_LEVEL;
+		}
+	}
+}
