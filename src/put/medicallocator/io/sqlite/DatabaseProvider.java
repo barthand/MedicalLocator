@@ -11,6 +11,7 @@ import put.medicallocator.io.Facility;
 import put.medicallocator.io.IFacilityProvider;
 import put.medicallocator.io.sqlite.DatabaseContract.Tables;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -171,6 +172,8 @@ public class DatabaseProvider implements IFacilityProvider {
 		private static final String TAG = "DatabaseHelper";
     	private static final String DB_PATH = "/data/data/put.medicallocator/databases/";
     	
+    	private static final int MAX_CHUNK_COUNT = 10;
+    	
 		private Context context;
 
 		public DatabaseHelper(Context context) {
@@ -254,31 +257,37 @@ public class DatabaseProvider implements IFacilityProvider {
 	     * */
 	    private void copyDB() throws IOException {
 	    	Log.d(TAG, "Overwriting the empty DB with the deployed along with the application one.");
-	    	// Open the local-stored DB as the input stream.
-	    	InputStream myInput = context.getAssets().open(DatabaseContract.DATABASE_NAME + ".mp3");
-	    	// The .mp3 suffix explanation: What for? To cheat Android and avoid 
-	    	// "Data exceeds UNCOMPRESS_DATA_MAX" (bigger than 1MB) problem. Aapt doesn't try
-	    	// to compress files which are meant to be already compressed in common sense.
-	    	// TODO: Split the DB from assets/ folder into the 1MB chunks 
-	    	// and join them here afterwards.
-	 
+	    	
+	    	final AssetManager assetManager = context.getAssets();
+
 	    	// Path to the recently created empty DB.
 	    	String outFileName = DB_PATH + DatabaseContract.DATABASE_NAME;
 	 
 	    	// Open the empty DB as the output stream.
 	    	OutputStream myOutput = new FileOutputStream(outFileName);
-	 
-	    	// Transfer bytes from the input-stream to the output-stream.
 	    	byte[] buffer = new byte[1024];
 	    	int length;
-	    	while ((length = myInput.read(buffer))>0){
-	    		myOutput.write(buffer, 0, length);
+	    	
+	    	// Iterate through the DB chunks and append them to the output stream one after another.
+	    	String[] fileList = assetManager.list("");
+	    	Arrays.sort(fileList);
+	    	for (int i=0; i<MAX_CHUNK_COUNT; i++) {
+		    	// Open the local-stored DB chunk as the input stream.
+	    		String fileName = String.format(DatabaseContract.DATABASE_NAME + ".%d", i);
+	    		InputStream myInput = assetManager.open(fileName);
+
+	    		// Transfer bytes from the input-stream to the output-stream.
+	    		while ((length = myInput.read(buffer))>0){
+		    		myOutput.write(buffer, 0, length);
+		    	}
+	    		
+	    		// Close the input stream.
+		    	myInput.close();
 	    	}
 	 
-	    	// Flush and close the both streams.
+	    	// Flush and close the output stream.
 	    	myOutput.flush();
 	    	myOutput.close();
-	    	myInput.close();
 	    }
 	}
 }
