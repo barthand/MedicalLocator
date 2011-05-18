@@ -11,9 +11,12 @@ import put.medicallocator.io.IFacilityProviderManager;
 import put.medicallocator.ui.overlay.BasicItemizedOverlay;
 import put.medicallocator.ui.overlay.FacilityOverlayItem;
 import put.medicallocator.utils.GeoUtils;
+import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -27,7 +30,7 @@ import com.google.android.maps.Overlay;
 
 public class ActivityMain extends MapActivity implements AsyncQueryListener {
 
-	// TODO: Use the savedInstanceBundle to check if Map, etc. was initialized
+	// TODO: Add the options to turn off/on GPS tracking.
 	
 	private static final String TAG = ActivityMain.class.getName(); 
 	
@@ -77,6 +80,16 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		mapController.setCenter(state.currentPoint);
 		mapController.setZoom(state.zoomLevel);
 
+		/* Register for the GPS updates */
+        final LocationManager locationManager = 
+        	(LocationManager) getSystemService(Context.LOCATION_SERVICE);    
+        
+        locationManager.requestLocationUpdates(
+            LocationManager.GPS_PROVIDER, 
+            0, 
+            0, 
+            new MyLocationListener());   
+		
 		/* Post query job */
 		handler.post(doQueryIfRequired);
     }
@@ -213,10 +226,39 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	private class State {
 		public GeoPoint currentPoint;
 		public int zoomLevel;
+		public boolean isGPSTrackingEnabled = true;
 		
 		private State () {
 			currentPoint = START_GEOPOINT;
 			zoomLevel = START_ZOOM_LEVEL;
 		}
+	}
+	
+	private class MyLocationListener implements LocationListener {
+
+		public void onLocationChanged(Location location) {
+			Log.v(TAG, "Received the GPS fix: " + 
+					location.getLatitude() + "; " + location.getLongitude());
+			if (mapView != null && state.isGPSTrackingEnabled) {
+				final MapController mapController = mapView.getController();
+				state.currentPoint = GeoUtils.convertToGeoPoint(
+						location.getLatitude(), 
+						location.getLongitude());
+				mapController.animateTo(state.currentPoint);
+			}
+		}
+
+		public void onProviderDisabled(String provider) {
+			// No need to implement this here.
+		}
+
+		public void onProviderEnabled(String provider) {
+			// No need to implement this here.
+		}
+
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+			// No need to implement this here.
+		}
+		
 	}
 }
