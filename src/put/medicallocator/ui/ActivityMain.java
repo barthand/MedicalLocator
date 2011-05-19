@@ -26,11 +26,12 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
 
 public class ActivityMain extends MapActivity implements AsyncQueryListener {
 
-	// TODO: Add the options to turn off/on GPS tracking.
+	// TODO: Add the options to turn off/on location tracking.
 	
 	private static final String TAG = ActivityMain.class.getName(); 
 	
@@ -40,6 +41,8 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	private static final int START_ZOOM_LEVEL = 14;
 	
     private MapView mapView;
+    private MyLocationOverlay locationOverlay;
+    private LocationListener myLocationListener;
     private GeoPoint lastVisibleGeoPoint;
     private int noChangeCounter = 0;
     
@@ -74,13 +77,22 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
         
         /* Set the basic attributes of the MapView */
 		mapView = (MapView) findViewById(R.id.map_view);
+		locationOverlay = new MyLocationOverlay(this, mapView);
 		mapView.setBuiltInZoomControls(true);
-		
+		myLocationListener = new MyLocationListener();
+
 		final MapController mapController = mapView.getController();
 		mapController.setCenter(state.currentPoint);
 		mapController.setZoom(state.zoomLevel);
 
-		/* Register for the GPS updates */
+        /* Post query job */
+		handler.post(doQueryIfRequired);
+    }
+
+    @Override
+    protected void onResume() {
+    	super.onResume();
+		/* Register for the Location updates */
         final LocationManager locationManager = 
         	(LocationManager) getSystemService(Context.LOCATION_SERVICE);    
         
@@ -88,10 +100,29 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
             LocationManager.GPS_PROVIDER, 
             0, 
             0, 
-            new MyLocationListener());   
-		
-		/* Post query job */
-		handler.post(doQueryIfRequired);
+            myLocationListener);   
+
+        locationManager.requestLocationUpdates(
+            LocationManager.NETWORK_PROVIDER, 
+            0, 
+            0, 
+            myLocationListener);
+
+        /* Enable the MyLocationOverlay as well */
+        locationOverlay.enableMyLocation();
+		mapView.getOverlays().add(locationOverlay);
+    }
+    
+    @Override
+    protected void onPause() {
+    	super.onPause();
+    	/* Unregister for the Location updates */
+    	final LocationManager locationManager = 
+        	(LocationManager) getSystemService(Context.LOCATION_SERVICE);    
+    	locationManager.removeUpdates(myLocationListener);
+    	
+        /* Disable the MyLocationOverlay as well */
+    	locationOverlay.disableMyLocation();
     }
     
     @Override
@@ -200,33 +231,30 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 				itemizedOverlay.addOverlay(overlayItem);
 			} while (cursor.moveToNext());
 			Log.d(TAG, "Overlays created. It took: " + (System.currentTimeMillis() - start) + " ms");
+			
+			// TODO: Find a less hacky way to avoid performance problem.
+			itemizedOverlay.populateNow();
+			
+			runOnUiThread(new Runnable() {
+				public void run() {
+					final List<Overlay> overlays = mapView.getOverlays();
+					overlays.clear();
+					overlays.add(itemizedOverlay);
+					overlays.add(locationOverlay);
+					Log.d(TAG, "Posting invalidate on MapView");
+					mapView.invalidate();
+				}
+			});
 		}
 		
-		// TODO: Find a less hacky way to avoid performance problem.
-		itemizedOverlay.populateNow();
-		final List<Overlay> overlays = mapView.getOverlays();
-		overlays.clear();
-		overlays.add(itemizedOverlay);
-		Log.d(TAG, "Posting invalidate on MapView");
-		mapView.postInvalidate();
-
-/*		runOnUiThread(new Runnable() {
-			
-			public void run() {
-				Log.d(TAG, "Invalidating MapView");
-				final List<Overlay> overlays = mapView.getOverlays();
-				overlays.clear();
-				overlays.add(itemizedOverlay);
-				mapView.invalidate();
-			}
-		});*/
 		cursor.close();
 	}
 	
 	private class State {
 		public GeoPoint currentPoint;
 		public int zoomLevel;
-		public boolean isGPSTrackingEnabled = true;
+		public boolean isTrackingEnabled = true;
+		public boolean isGPSEnabled = false;
 		
 		private State () {
 			currentPoint = START_GEOPOINT;
@@ -237,23 +265,38 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	private class MyLocationListener implements LocationListener {
 
 		public void onLocationChanged(Location location) {
-			Log.v(TAG, "Received the GPS fix: " + 
+			Log.d(TAG, "Received the Location update from " + location.getProvider() + ": " + 
 					location.getLatitude() + "; " + location.getLongitude());
-			if (mapView != null && state.isGPSTrackingEnabled) {
-				final MapController mapController = mapView.getController();
+			if (mapView != null && state.isTrackingEnabled) {
+				final String provider = location.getProvider();
+				
+				if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
+					// Use the NETWORK_PROVIDER only if GPS is not enabled.
+					if (state.isGPSEnabled) return;
+				} else if (LocationManager.GPS_PROVIDER.equals(provider)) {
+					state.isGPSEnabled = true;
+				}
+				
 				state.currentPoint = GeoUtils.convertToGeoPoint(
-						location.getLatitude(), 
-						location.getLongitude());
-				mapController.animateTo(state.currentPoint);
+						location.getLatitude(), location.getLongitude());
+
+				runOnUiThread(new Runnable() {
+					public void run() {
+						final MapController mapController = mapView.getController();
+						mapController.animateTo(state.currentPoint);
+					}
+				});
 			}
 		}
 
 		public void onProviderDisabled(String provider) {
-			// No need to implement this here.
+			if (LocationManager.GPS_PROVIDER.equals(provider)) 
+				state.isGPSEnabled = false;
 		}
 
 		public void onProviderEnabled(String provider) {
-			// No need to implement this here.
+			if (LocationManager.GPS_PROVIDER.equals(provider)) 
+				state.isGPSEnabled = true;
 		}
 
 		public void onStatusChanged(String provider, int status, Bundle extras) {
