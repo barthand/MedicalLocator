@@ -274,6 +274,8 @@ public class DatabaseProvider implements IFacilityProvider {
 	    	for (int i=0; i<MAX_CHUNK_COUNT; i++) {
 		    	// Open the local-stored DB chunk as the input stream.
 	    		String fileName = String.format(DatabaseContract.DATABASE_NAME + ".%d", i);
+	    		if (Arrays.binarySearch(fileList, fileName) < 0) break;
+	    		
 	    		InputStream myInput = assetManager.open(fileName);
 
 	    		// Transfer bytes from the input-stream to the output-stream.
