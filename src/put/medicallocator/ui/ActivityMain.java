@@ -20,6 +20,9 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -131,6 +134,35 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     	state.currentPoint = mapView.getMapCenter();
     	state.zoomLevel = mapView.getZoomLevel();
     	return state;
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+    	final MenuInflater menuInflater = getMenuInflater();
+    	menuInflater.inflate(R.menu.activity_main_menu, menu);
+    	return true;
+    }
+    
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+    	final MenuItem trackingItem = menu.findItem(R.id.tracking_menuitem);
+    	if (state.isTrackingEnabled) {
+    		trackingItem.setTitle(getResources().getString(R.string.activitymain_disabletracking));
+    	} else {
+    		trackingItem.setTitle(getResources().getString(R.string.activitymain_enabletracking));    		
+    	}
+    	return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	switch (item.getItemId()) {
+    		case R.id.tracking_menuitem:
+    			state.isTrackingEnabled = !state.isTrackingEnabled;
+    			return true;
+    		default:
+    			return super.onOptionsItemSelected(item);
+    	}
     }
     
 	@Override
