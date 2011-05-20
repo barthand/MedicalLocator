@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Medical Locator</string>
     <string name="activitymain_initializing_provider">Initializing Data Provider. Please wait a moment..</string>
-    <string name="dialogfacilitybubble_call">Call there!</string>
-    <string name="dialogfacilitybubble_email">E-mail it!</string>
+    <string name="dialogfacilitybubble_call">Call there</string>
+    <string name="dialogfacilitybubble_email">E-mail it</string>
+    <string name="dialogfacilitybubble_email_app_chooser">Choose the e-mail application</string>
+    <string name="dialogfacilitybubble_www">Go to webpage</string>
 </resources>
