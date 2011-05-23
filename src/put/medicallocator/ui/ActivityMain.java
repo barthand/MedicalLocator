@@ -121,6 +121,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 
         /* Enable the MyLocationOverlay as well */
         locationOverlay.enableMyLocation();
+        locationOverlay.runOnFirstFix(onFirstFixRunnable);
 		mapView.getOverlays().add(locationOverlay);
 		
         /* Post query job */
@@ -414,6 +415,18 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 			// No need to implement this here.
 		}
-		
 	}
+	
+	private Runnable onFirstFixRunnable = new Runnable() {
+		
+		public void run() {
+			runOnUiThread(new Runnable() {
+				
+				public void run() {
+					final MapController mapController = mapView.getController();
+					mapController.animateTo(locationOverlay.getMyLocation());
+				}
+			});
+		}
+	};
 }
