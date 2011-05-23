@@ -32,7 +32,22 @@ public interface IFacilityProvider {
 	throws Exception;
 
 	/**
-	 * Returns the facilities within specified radius. 
+	 * Returns the facilities within specified radius, which names are like elements of the 
+	 * {@code names} array. You are responsible for managing the returned Cursor.
+	 * @param listener If null, query is executed in the same thread as it is executed. Otherwise,
+	 * 		it is executed in the new thread and the result is provided to {@code listener} 
+	 * 		callback. If the {@link Handler} was provided to this class using 
+	 * 		{@link IFacilityProvider#setAsyncParameters(Handler)}, callback will be executed using
+	 * 		it. If no {@link Handler} was specified, callback will be executed from newly 
+	 * 		created thread.
+	 * @param names If null or empty, all matching records are returned.
+	 */
+	public Cursor getFacilitiesWithinRadius(AsyncQueryListener listener,  
+			Location startLocation, int radius, String[] names) 
+	throws Exception;
+	
+	/**
+	 * Returns the facilities within specified area. 
 	 * You are responsible for managing the returned Cursor.
 	 * @param listener If null, query is executed in the same thread as it is executed. Otherwise,
 	 * 		it is executed in the new thread and the result is provided to {@code listener} 
@@ -44,7 +59,22 @@ public interface IFacilityProvider {
 	public Cursor getFacilitiesWithinArea(AsyncQueryListener listener, 
 			Location lowerLeftLocation, Location upperRightLocation)
 	throws Exception;
-	
+
+	/**
+	 * Returns the facilities within specified area, which names are like elements of the 
+	 * {@code names} array. You are responsible for managing the returned Cursor.
+	 * @param listener If null, query is executed in the same thread as it is executed. Otherwise,
+	 * 		it is executed in the new thread and the result is provided to {@code listener} 
+	 * 		callback. If the {@link Handler} was provided to this class using 
+	 * 		{@link IFacilityProvider#setAsyncParameters(Handler)}, callback will be executed using
+	 * 		it. If no {@link Handler} was specified, callback will be executed from newly 
+	 * 		created thread.
+	 * @param names If null or empty, all matching records are returned.
+	 */
+	public Cursor getFacilitiesWithinArea(AsyncQueryListener listener, 
+			Location lowerLeftLocation, Location upperRightLocation, String[] names)
+	throws Exception;
+
 	/**
 	 * Returns the facilities which addresses include specified address. 
 	 * You are responsible for managing the returned Cursor.

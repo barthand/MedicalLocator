@@ -7,6 +7,9 @@
     <string name="activitymain_enabletracking">Enable tracking</string>
     <string name="activitymain_disabletracking">Disable tracking</string>
     <string name="activitymain_about">About</string>
+    <string name="activityfilter">Filters</string>
+    <string name="activityfilter_distance">Distance within which we seek for facilities:</string>
+    <string name="activityfilter_resettodefaults">Reset to defaults</string>
     <string name="dialogfacilitybubble_call">Call there</string>
     <string name="dialogfacilitybubble_email">E-mail it</string>
     <string name="dialogfacilitybubble_email_app_chooser">Choose the e-mail application</string>

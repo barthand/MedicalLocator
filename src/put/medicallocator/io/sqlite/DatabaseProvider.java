@@ -42,11 +42,21 @@ public class DatabaseProvider implements IFacilityProvider {
 	public Cursor getFacilitiesWithinArea(AsyncQueryListener listener, 
 			Location lowerLeftLocation, Location upperRightLocation) 
 	throws Exception {
-		final String selection = 
+		return getFacilitiesWithinArea(listener, lowerLeftLocation, upperRightLocation, null);
+	}
+	
+	public Cursor getFacilitiesWithinArea(AsyncQueryListener listener, 
+			Location lowerLeftLocation, Location upperRightLocation, String[] names) 
+	throws Exception {
+		String selection = 
 				Facility.Columns.LATITUDE + " > ? AND " +
 				Facility.Columns.LONGITUDE + " > ? AND " +
 				Facility.Columns.LATITUDE + " < ? AND " +
 				Facility.Columns.LONGITUDE + " < ?";
+		if (names != null && names.length > 0) {
+			selection += " AND " + prepareSQLClauseLike(Facility.Columns.NAME, names);
+		}
+				
 		final String[] selectionArgs = new String[] { 
 				Double.toString(lowerLeftLocation.getLatitude()),
 				Double.toString(lowerLeftLocation.getLongitude()),
@@ -61,7 +71,7 @@ public class DatabaseProvider implements IFacilityProvider {
 		/* Return the Cursor */
 		return cursor;
 	}
-	
+
 	public Cursor getFacilitiesWithinRadius(AsyncQueryListener listener, 
 			Location startLocation, int radius) 
 	throws Exception {
@@ -71,10 +81,20 @@ public class DatabaseProvider implements IFacilityProvider {
 		 */
 		throw new Exception("Unsupported operation in this provider.");
 	}
+	
+	public Cursor getFacilitiesWithinRadius(AsyncQueryListener listener, 
+			Location startLocation, int radius, String[] names) 
+	throws Exception {
+		/* 
+		 * Due to lack of trigonometric function in SQLite side,
+		 * this can't be implemented. 
+		 */
+		throw new Exception("Unsupported operation in this provider.");
+	}
 
 	public Cursor getFacilitiesWithinAddress(AsyncQueryListener listener, String address) {
-		final String selection = "lower(" + Facility.Columns.ADDRESS +") LIKE ?";
-		final String[] selectionArgs = new String[] { "%" + address + "%".toLowerCase() };
+		final String selection = Facility.Columns.ADDRESS +" LIKE ?";
+		final String[] selectionArgs = new String[] { "%" + address + "%" };
 
 		final Cursor cursor = 
 			queryDB(listener, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
@@ -291,5 +311,16 @@ public class DatabaseProvider implements IFacilityProvider {
 	    	myOutput.flush();
 	    	myOutput.close();
 	    }
+	}
+	
+	private static String prepareSQLClauseLike(String quailfiedField, String[] values) {
+		StringBuilder builder = new StringBuilder();
+		final int count = values.length;
+		builder.append("(");
+		for (int i=0; i<count-1; i++) {
+			builder.append(quailfiedField).append(" LIKE '%").append(values[i]).append("%' OR ");
+		}
+		builder.append(quailfiedField).append(" LIKE '%").append(values[count-1]).append("%')");
+		return builder.toString();
 	}
 }

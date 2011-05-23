@@ -18,5 +18,9 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.ActivityFilter"
+                  android:label="@string/activityfilter">
+        </activity>
+
     </application>
 </manifest>

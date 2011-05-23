@@ -1,5 +1,6 @@
 package put.medicallocator.ui;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +12,9 @@ import put.medicallocator.io.IFacilityProviderManager;
 import put.medicallocator.ui.overlay.BasicItemizedOverlay;
 import put.medicallocator.ui.overlay.FacilityOverlayItem;
 import put.medicallocator.utils.GeoUtils;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -43,11 +46,14 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	/** Defines the start zoom level. */
 	private static final int START_ZOOM_LEVEL = 14;
 	
+	private int currentDistanceInKilometers = ActivityFilter.DEFAULT_DISTANCE_IN_KILOMETERS;
+	
     private MapView mapView;
     private MyLocationOverlay locationOverlay;
     private LocationListener myLocationListener;
     private GeoPoint lastVisibleGeoPoint;
     private int noChangeCounter = 0;
+    private String[] filters = null;
     
     private Handler handler;
     private State state;
@@ -87,9 +93,6 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		final MapController mapController = mapView.getController();
 		mapController.setCenter(state.currentPoint);
 		mapController.setZoom(state.zoomLevel);
-
-        /* Post query job */
-		handler.post(doQueryIfRequired);
     }
 
     @Override
@@ -114,7 +117,11 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
         /* Enable the MyLocationOverlay as well */
         locationOverlay.enableMyLocation();
 		mapView.getOverlays().add(locationOverlay);
-    }
+		
+        /* Post query job */
+		noChangeCounter = 0;
+		handler.post(doQueryIfRequired);
+	}
     
     @Override
     protected void onPause() {
@@ -126,6 +133,9 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     	
         /* Disable the MyLocationOverlay as well */
     	locationOverlay.disableMyLocation();
+    	
+    	/* Disable the queries */
+    	handler.removeCallbacks(doQueryIfRequired);
     }
     
     @Override
@@ -157,6 +167,9 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
+    		case R.id.filter_menuitem:
+    			openFilterOptions();
+    			return true;
     		case R.id.tracking_menuitem:
     			state.isTrackingEnabled = !state.isTrackingEnabled;
     			return true;
@@ -165,6 +178,25 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     	}
     }
     
+	private void openFilterOptions() {
+		final Intent intent = new Intent(this, ActivityFilter.class);
+		intent.putExtra(ActivityFilter.INPUT_FILTER_ARRAY, filters);
+		intent.putExtra(ActivityFilter.INPUT_DISTANCE, currentDistanceInKilometers);
+		startActivityForResult(intent, ActivityFilter.FILTER_REQUEST_CODE);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+			case ActivityFilter.FILTER_REQUEST_CODE:
+				if (resultCode == Activity.RESULT_OK) {
+					setFilters(data);
+				}
+			default:
+				break;
+		}
+	}
+	
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
@@ -195,10 +227,10 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			if (noChangeCounter == 2) {
 				IFacilityProvider provider = IFacilityProviderManager.getInstance(ActivityMain.this);
 				
-				// TODO: Make this distance dependent on the current zooming.
-				final int distanceInKilometers = 10;
+				// TODO: Make the distance dependent on the current zooming.
 				final GeoPoint[] boundingGeoPoints = 
-					GeoUtils.boundingCoordinates(distanceInKilometers, currentVisibleGeoPoint);
+					GeoUtils.boundingCoordinates(
+							currentDistanceInKilometers, currentVisibleGeoPoint);
 				final GeoPoint minGeoPoint = boundingGeoPoints[0];
 				final GeoPoint maxGeoPoint = boundingGeoPoints[1];
 				
@@ -217,7 +249,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 				try {
 					provider.getFacilitiesWithinArea(
 							ActivityMain.this, 
-							lowerLeftLocation, upperRightLocation);
+							lowerLeftLocation, upperRightLocation, filters);
 				} catch (Exception e) {
 					// It shouldn't happen - even if the query just won't be executed.
 				}
@@ -234,7 +266,16 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			Map<String, Integer> columnMapping) {
 		Log.e(TAG, "Query finished. Returned rows: " + cursor.getCount());
 		if (!cursor.moveToFirst()) {
-			// Empty resultset.
+			cursor.close();
+			runOnUiThread(new Runnable() {
+				public void run() {
+					final List<Overlay> overlays = mapView.getOverlays();
+					overlays.clear();
+					overlays.add(locationOverlay);
+					Log.d(TAG, "Posting invalidate on MapView");
+					mapView.invalidate();
+				}
+			});
 			return;
 		}
 		
@@ -335,5 +376,15 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			// No need to implement this here.
 		}
 		
+	}
+	
+	private void setFilters(Intent intent) {
+		currentDistanceInKilometers = intent.getIntExtra(
+				ActivityFilter.RESULT_DISTANCE, 
+				ActivityFilter.DEFAULT_DISTANCE_IN_KILOMETERS);
+		filters = intent.getStringArrayExtra(ActivityFilter.RESULT_FILTER_ARRAY);;
+		
+		Log.d(TAG, "Received filters: [ " + currentDistanceInKilometers + " km], " 
+				+ Arrays.toString(filters));
 	}
 }
