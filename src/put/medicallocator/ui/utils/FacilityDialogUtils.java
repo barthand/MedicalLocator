@@ -5,16 +5,19 @@ import put.medicallocator.io.Facility;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
 public class FacilityDialogUtils {
+	private static final String TAG = FacilityDialogUtils.class.getName();
 
-	public static void setUIProperties(final Context context, View layout, Facility facility) {
+	public static void setUIProperties(final Context context, View layout, final Facility facility) {
 		// The trick here is that in the e-mail field, we may have WWW page as well.
 		String email = null;
 		String webpage = null;
+		final Button callButton = (Button) layout.findViewById(R.id.call_button);
 		final Button emailButton = (Button) layout.findViewById(R.id.email_button); 
 		final Button webpageButton = (Button) layout.findViewById(R.id.www_button); 
 
@@ -33,6 +36,18 @@ public class FacilityDialogUtils {
 				}
 			}
 		}
+		
+		callButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				try {
+				   Intent intent = new Intent(Intent.ACTION_CALL);
+				   intent.setData(Uri.parse("tel:" + facility.getPhone()));
+				   context.startActivity(intent);
+				} catch (Exception e) {
+				   Log.e(TAG, "Failed to invoke call", e);
+				}
+			}
+		});
 		
 		/* Do the appropriate UI actions if the e-mail exists */
 		if (email != null) {
