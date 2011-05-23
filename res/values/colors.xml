@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="dialog_text">#cccccc</color>
+    <color name="color_list_item_footer">#ff96938e</color>
+    <color name="color_list_view_header">#ffd46100</color>
 </resources>

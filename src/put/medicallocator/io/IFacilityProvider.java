@@ -89,6 +89,19 @@ public interface IFacilityProvider {
 	throws Exception;
 	
 	/**
+	 * Returns the facilities which address or name is matching specified query. 
+	 * You are responsible for managing the returned Cursor.
+	 * @param listener If null, query is executed in the same thread as it is executed. Otherwise,
+	 * 		it is executed in the new thread and the result is provided to {@code listener} 
+	 * 		callback. If the {@link Handler} was provided to this class using 
+	 * 		{@link IFacilityProvider#setAsyncParameters(Handler)}, callback will be executed using
+	 * 		it. If no {@link Handler} was specified, callback will be executed from newly 
+	 * 		created thread.
+	 */
+	public Cursor getFacilities(AsyncQueryListener listener, String query)
+	throws Exception;
+	
+	/**
 	 * Returns the facility from specified location.
 	 */
 	public Facility getFacility(Location location)

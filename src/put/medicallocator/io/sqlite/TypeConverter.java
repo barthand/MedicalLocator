@@ -21,22 +21,22 @@ public class TypeConverter {
 		if ((columnIndex = columnMapping.get(Facility.Columns._ID)) != null) {
 			result.setId(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(Facility.Columns.NAME)) != null) {
+		if ((columnIndex = columnMapping.get(Facility.Columns.NAME)) != null) {
 			result.setName(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(Facility.Columns.ADDRESS)) != null) {
+		if ((columnIndex = columnMapping.get(Facility.Columns.ADDRESS)) != null) {
 			result.setAddress(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(Facility.Columns.PHONE)) != null) {
+		if ((columnIndex = columnMapping.get(Facility.Columns.PHONE)) != null) {
 			result.setPhone(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(Facility.Columns.EMAIL)) != null) {
+		if ((columnIndex = columnMapping.get(Facility.Columns.EMAIL)) != null) {
 			result.setEmail(cursor.getString(columnIndex));
 		}
-		else if ((columnIndex = columnMapping.get(Facility.Columns.LATITUDE)) != null) {
+		if ((columnIndex = columnMapping.get(Facility.Columns.LATITUDE)) != null) {
 			latitude = cursor.getDouble(columnIndex);
 		}
-		else if ((columnIndex = columnMapping.get(Facility.Columns.LONGITUDE)) != null) {
+		if ((columnIndex = columnMapping.get(Facility.Columns.LONGITUDE)) != null) {
 			longitude = cursor.getDouble(columnIndex);
 		}
 		if (latitude != Double.MIN_VALUE && longitude != Double.MIN_VALUE) {

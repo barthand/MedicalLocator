@@ -173,6 +173,9 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     		case R.id.tracking_menuitem:
     			state.isTrackingEnabled = !state.isTrackingEnabled;
     			return true;
+    		case R.id.search_menuitem:
+    			onSearchRequested();
+    			return true;
     		default:
     			return super.onOptionsItemSelected(item);
     	}

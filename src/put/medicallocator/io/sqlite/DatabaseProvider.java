@@ -104,6 +104,24 @@ public class DatabaseProvider implements IFacilityProvider {
 		return cursor;
 	}
 
+	public Cursor getFacilities(AsyncQueryListener listener, String query)
+	throws Exception {
+		final String selection = 
+			Facility.Columns.ADDRESS +" LIKE ? OR " +
+			Facility.Columns.NAME +" LIKE ?";
+		final String[] selectionArgs = new String[] { 
+				"%" + query + "%",
+				"%" + query + "%"
+			};
+
+		final Cursor cursor = 
+			queryDB(listener, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
+					selection, selectionArgs);
+		
+		/* Return the Cursor */
+		return cursor;
+	}
+	
 	public Facility getFacility(Location location) {
 		final String selection = 
 				Facility.Columns.LATITUDE + " = ? AND " +
@@ -323,4 +341,5 @@ public class DatabaseProvider implements IFacilityProvider {
 		builder.append(quailfiedField).append(" LIKE '%").append(values[count-1]).append("%')");
 		return builder.toString();
 	}
+
 }

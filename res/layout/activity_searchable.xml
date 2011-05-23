@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <ListView android:id="@android:id/list" android:layout_height="wrap_content" android:layout_width="fill_parent"></ListView>
+    <LinearLayout android:id="@id/android:empty" android:layout_width="fill_parent" android:orientation="horizontal" android:layout_height="0dip" android:layout_weight="1" android:padding="5dip" android:gravity="center_vertical|center_horizontal">
+        <ProgressBar android:id="@+id/search_progressbar" style="?android:attr/progressBarStyleSmall" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingRight="6dip" android:indeterminate="true" />
+		<TextView android:id="@+id/search_textview" android:text="@string/activitysearch_loading" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+	</LinearLayout>
+</LinearLayout>
