@@ -329,7 +329,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	private class State {
 		public GeoPoint currentPoint;
 		public int zoomLevel;
-		public boolean isTrackingEnabled = true;
+		public boolean isTrackingEnabled = false;
 		public boolean isGPSEnabled = false;
 		
 		private State () {
