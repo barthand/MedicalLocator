@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/dialog_root"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dip">
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent">
+        <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:src="@drawable/icon"></ImageView>
+	    <LinearLayout android:layout_height="fill_parent" android:layout_width="0dip" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical">
+	        <TextView android:textColor="@color/dialog_text" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="@string/app_name"></TextView>
+        	<TextView android:textColor="@color/dialog_text" android:id="@+id/dialogabout_appversion" android:layout_height="wrap_content" android:layout_width="fill_parent"></TextView>
+        </LinearLayout>
+    </LinearLayout>
+    <TextView android:textColor="@color/dialog_text" android:layout_height="wrap_content" android:inputType="textMultiLine" android:minLines="5" android:layout_width="fill_parent" android:text="@string/dialogabout_about" android:padding="10dip"></TextView>
+    
+</LinearLayout>

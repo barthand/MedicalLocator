@@ -13,8 +13,10 @@ import put.medicallocator.ui.overlay.BasicItemizedOverlay;
 import put.medicallocator.ui.overlay.FacilityOverlayItem;
 import put.medicallocator.utils.GeoUtils;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -23,9 +25,12 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -176,18 +181,14 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     		case R.id.search_menuitem:
     			onSearchRequested();
     			return true;
+    		case R.id.about_menuitem:
+    			showAbout();
+    			return true;
     		default:
     			return super.onOptionsItemSelected(item);
     	}
     }
     
-	private void openFilterOptions() {
-		final Intent intent = new Intent(this, ActivityFilter.class);
-		intent.putExtra(ActivityFilter.INPUT_FILTER_ARRAY, filters);
-		intent.putExtra(ActivityFilter.INPUT_DISTANCE, currentDistanceInKilometers);
-		startActivityForResult(intent, ActivityFilter.FILTER_REQUEST_CODE);
-	}
-
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
@@ -204,66 +205,6 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	protected boolean isRouteDisplayed() {
 		return false;
 	}
-	
-	private Runnable doQueryIfRequired = new Runnable() {
-		public void run() {
-			/* Save the exact coordinates of the top-left visible vertex of MapView */
-			final GeoPoint currentVisibleGeoPoint = mapView.getMapCenter();
-			final int currentLatitude = currentVisibleGeoPoint.getLatitudeE6();
-			final int currentLongitude = currentVisibleGeoPoint.getLongitudeE6();
-
-			if (lastVisibleGeoPoint == null) {
-				noChangeCounter = 0;
-				lastVisibleGeoPoint = currentVisibleGeoPoint;
-			} else {
-				final int lastLatitude = lastVisibleGeoPoint.getLatitudeE6();
-				final int lastLongitude = lastVisibleGeoPoint.getLongitudeE6();
-				
-				if (lastLatitude == currentLatitude && lastLongitude == currentLongitude) {
-					noChangeCounter++;
-				} else {
-					noChangeCounter = 0;
-					lastVisibleGeoPoint = currentVisibleGeoPoint;
-				}
-			}
-			
-			if (noChangeCounter == 2) {
-				IFacilityProvider provider = IFacilityProviderManager.getInstance(ActivityMain.this);
-				
-				// TODO: Make the distance dependent on the current zooming.
-				final GeoPoint[] boundingGeoPoints = 
-					GeoUtils.boundingCoordinates(
-							currentDistanceInKilometers, currentVisibleGeoPoint);
-				final GeoPoint minGeoPoint = boundingGeoPoints[0];
-				final GeoPoint maxGeoPoint = boundingGeoPoints[1];
-				
-				final double minLatitude = GeoUtils.convertToDegrees(minGeoPoint)[0];
-				final double minLongitude = GeoUtils.convertToDegrees(minGeoPoint)[1];
-				final double maxLatitude = GeoUtils.convertToDegrees(maxGeoPoint)[0];
-				final double maxLongitude = GeoUtils.convertToDegrees(maxGeoPoint)[1];
-				
-				final Location lowerLeftLocation = new Location("");
-				final Location upperRightLocation = new Location("");
-				lowerLeftLocation.setLatitude(minLatitude);
-				lowerLeftLocation.setLongitude(minLongitude);
-				upperRightLocation.setLatitude(maxLatitude);
-				upperRightLocation.setLongitude(maxLongitude);
-				
-				try {
-					provider.getFacilitiesWithinArea(
-							ActivityMain.this, 
-							lowerLeftLocation, upperRightLocation, filters);
-				} catch (Exception e) {
-					// It shouldn't happen - even if the query just won't be executed.
-				}
-			}
-			
-			/* Post this job once again after 1000ms */
-			handler.postDelayed(doQueryIfRequired, 1000);
-		}
-	};
-
-
 
 	public void onQueryComplete(int token, Cursor cursor,
 			Map<String, Integer> columnMapping) {
@@ -325,6 +266,101 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		
 		cursor.close();
 	}
+
+	private Runnable doQueryIfRequired = new Runnable() {
+		public void run() {
+			/* Save the exact coordinates of the top-left visible vertex of MapView */
+			final GeoPoint currentVisibleGeoPoint = mapView.getMapCenter();
+			final int currentLatitude = currentVisibleGeoPoint.getLatitudeE6();
+			final int currentLongitude = currentVisibleGeoPoint.getLongitudeE6();
+
+			if (lastVisibleGeoPoint == null) {
+				noChangeCounter = 0;
+				lastVisibleGeoPoint = currentVisibleGeoPoint;
+			} else {
+				final int lastLatitude = lastVisibleGeoPoint.getLatitudeE6();
+				final int lastLongitude = lastVisibleGeoPoint.getLongitudeE6();
+				
+				if (lastLatitude == currentLatitude && lastLongitude == currentLongitude) {
+					noChangeCounter++;
+				} else {
+					noChangeCounter = 0;
+					lastVisibleGeoPoint = currentVisibleGeoPoint;
+				}
+			}
+			
+			if (noChangeCounter == 2) {
+				IFacilityProvider provider = IFacilityProviderManager.getInstance(ActivityMain.this);
+				
+				// TODO: Make the distance dependent on the current zooming.
+				final GeoPoint[] boundingGeoPoints = 
+					GeoUtils.boundingCoordinates(
+							currentDistanceInKilometers, currentVisibleGeoPoint);
+				final GeoPoint minGeoPoint = boundingGeoPoints[0];
+				final GeoPoint maxGeoPoint = boundingGeoPoints[1];
+				
+				final double minLatitude = GeoUtils.convertToDegrees(minGeoPoint)[0];
+				final double minLongitude = GeoUtils.convertToDegrees(minGeoPoint)[1];
+				final double maxLatitude = GeoUtils.convertToDegrees(maxGeoPoint)[0];
+				final double maxLongitude = GeoUtils.convertToDegrees(maxGeoPoint)[1];
+				
+				final Location lowerLeftLocation = new Location("");
+				final Location upperRightLocation = new Location("");
+				lowerLeftLocation.setLatitude(minLatitude);
+				lowerLeftLocation.setLongitude(minLongitude);
+				upperRightLocation.setLatitude(maxLatitude);
+				upperRightLocation.setLongitude(maxLongitude);
+				
+				try {
+					provider.getFacilitiesWithinArea(
+							ActivityMain.this, 
+							lowerLeftLocation, upperRightLocation, filters);
+				} catch (Exception e) {
+					// It shouldn't happen - even if the query just won't be executed.
+				}
+			}
+			
+			/* Post this job once again after 1000ms */
+			handler.postDelayed(doQueryIfRequired, 1000);
+		}
+	};
+
+	private void setFilters(Intent intent) {
+		currentDistanceInKilometers = intent.getIntExtra(
+				ActivityFilter.RESULT_DISTANCE, 
+				ActivityFilter.DEFAULT_DISTANCE_IN_KILOMETERS);
+		filters = intent.getStringArrayExtra(ActivityFilter.RESULT_FILTER_ARRAY);;
+		
+		Log.d(TAG, "Received filters: [ " + currentDistanceInKilometers + " km], " 
+				+ Arrays.toString(filters));
+	}
+
+	private void openFilterOptions() {
+		final Intent intent = new Intent(this, ActivityFilter.class);
+		intent.putExtra(ActivityFilter.INPUT_FILTER_ARRAY, filters);
+		intent.putExtra(ActivityFilter.INPUT_DISTANCE, currentDistanceInKilometers);
+		startActivityForResult(intent, ActivityFilter.FILTER_REQUEST_CODE);
+	}
+
+	private void showAbout() {
+		LayoutInflater inflater = getLayoutInflater(); 
+		View layout = inflater.inflate(R.layout.dialog_about, null);
+
+		try {
+			String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+			String version = String.format(getString(R.string.app_version), versionName);
+			final TextView versionTextView = (TextView) layout.findViewById(R.id.dialogabout_appversion); 
+			versionTextView.setText(version);
+		} catch (NameNotFoundException e) {
+			// No version found, not critical..
+		}
+		
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setView(layout);
+		final AlertDialog dialog = builder.create();
+		dialog.setTitle(getString(R.string.app_name));
+		dialog.show();
+	}
 	
 	private class State {
 		public GeoPoint currentPoint;
@@ -379,15 +415,5 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			// No need to implement this here.
 		}
 		
-	}
-	
-	private void setFilters(Intent intent) {
-		currentDistanceInKilometers = intent.getIntExtra(
-				ActivityFilter.RESULT_DISTANCE, 
-				ActivityFilter.DEFAULT_DISTANCE_IN_KILOMETERS);
-		filters = intent.getStringArrayExtra(ActivityFilter.RESULT_FILTER_ARRAY);;
-		
-		Log.d(TAG, "Received filters: [ " + currentDistanceInKilometers + " km], " 
-				+ Arrays.toString(filters));
 	}
 }
