@@ -67,7 +67,7 @@ public class ActivityFilter extends ListActivity {
         distanceTextView = (TextView) findViewById(R.id.distance_textview);
         
         /* Set the UI attributes */
-        distanceSeekBar.setMax(MAX_DISTANCE_IN_KILOMETERS);
+        distanceSeekBar.setMax(MAX_DISTANCE_IN_KILOMETERS - 1);
         distanceSeekBar.setOnSeekBarChangeListener(listener);
         updateUI();
     }
@@ -89,7 +89,7 @@ public class ActivityFilter extends ListActivity {
 	}
 
 	private void updateUI() {
-		distanceSeekBar.setProgress(currentDistance);
+        distanceSeekBar.setProgress(currentDistance - 1);
 		distanceTextView.setText(currentDistance + " km");
 	}
 	
@@ -146,7 +146,7 @@ public class ActivityFilter extends ListActivity {
 		
 		public void onProgressChanged(SeekBar seekBar, int progress,
 				boolean fromUser) {
-			currentDistance = seekBar.getProgress();
+			currentDistance = seekBar.getProgress() + 1;
 			updateUI();
 		}
 	};
