@@ -336,9 +336,9 @@ public class DatabaseProvider implements IFacilityProvider {
 		final int count = values.length;
 		builder.append("(");
 		for (int i=0; i<count-1; i++) {
-			builder.append(quailfiedField).append(" LIKE '%").append(values[i]).append("%' OR ");
+			builder.append(quailfiedField).append(" LIKE '% ").append(values[i]).append(" %' OR ");
 		}
-		builder.append(quailfiedField).append(" LIKE '%").append(values[count-1]).append("%')");
+		builder.append(quailfiedField).append(" LIKE '% ").append(values[count-1]).append(" %')");
 		return builder.toString();
 	}
 
