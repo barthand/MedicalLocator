@@ -14,6 +14,7 @@
     <string name="activitysearch_loading">Loading the results..</string>
     <string name="activitysearch_returnedrows">Results found for \'%1$s\': %2$d</string>
     <string name="activitysearch_noresults">No results found for \'%1$s\'</string>
+    <string name="dialogfacilitybubble_title">Facility</string>
     <string name="dialogfacilitybubble_call">Call there</string>
     <string name="dialogfacilitybubble_email">E-mail it</string>
     <string name="dialogfacilitybubble_email_app_chooser">Choose the e-mail application</string>

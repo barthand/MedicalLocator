@@ -224,7 +224,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			return;
 		}
 		
-		final Drawable marker = getResources().getDrawable(android.R.drawable.btn_star);
+		final Drawable marker = getResources().getDrawable(R.drawable.marker);
 		final BasicItemizedOverlay itemizedOverlay = new BasicItemizedOverlay(this, marker);
 
 		synchronized (ActivityMain.class) {

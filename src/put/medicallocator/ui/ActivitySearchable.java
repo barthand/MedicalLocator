@@ -125,20 +125,12 @@ public class ActivitySearchable extends ListActivity implements AsyncQueryListen
 		LayoutInflater inflater = getLayoutInflater(); 
 		View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
 
-		final TextView addressTextView = (TextView) layout.findViewById(R.id.address_textview); 
-		final TextView phoneTextView = (TextView) layout.findViewById(R.id.phone_textview); 
-		final TextView emailTextView = (TextView) layout.findViewById(R.id.email_textview); 
-
-		addressTextView.setText(facility.getAddress());
-		phoneTextView.setText(facility.getPhone());
-		emailTextView.setText(facility.getEmail());
-		
 		FacilityDialogUtils.setUIProperties(this, layout, facility);
 		
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setView(layout);
 		final AlertDialog dialog = builder.create();
-		dialog.setTitle(facility.getName());
+		dialog.setTitle(getString(R.string.dialogfacilitybubble_title));
 		dialog.show();
 	}
 	

@@ -6,6 +6,7 @@
     android:layout_height="fill_parent"
     android:padding="10dip"
     >
+    <TextView style="@style/DialogText" android:id="@+id/name_textview"/>
     <TextView style="@style/DialogText" android:id="@+id/address_textview"/>
     <TextView style="@style/DialogText" android:id="@+id/phone_textview"/>
     <TextView style="@style/DialogText" android:id="@+id/email_textview"/>

@@ -9,11 +9,23 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class FacilityDialogUtils {
 	private static final String TAG = FacilityDialogUtils.class.getName();
 
 	public static void setUIProperties(final Context context, View layout, final Facility facility) {
+		// Set the primary information
+		final TextView nameTextView = (TextView) layout.findViewById(R.id.name_textview);
+		final TextView addressTextView = (TextView) layout.findViewById(R.id.address_textview); 
+		final TextView phoneTextView = (TextView) layout.findViewById(R.id.phone_textview); 
+		final TextView emailTextView = (TextView) layout.findViewById(R.id.email_textview); 
+
+		nameTextView.setText(facility.getName());
+		addressTextView.setText(facility.getAddress());
+		phoneTextView.setText(facility.getPhone());
+		emailTextView.setText(facility.getEmail());
+		
 		// The trick here is that in the e-mail field, we may have WWW page as well.
 		String email = null;
 		String webpage = null;

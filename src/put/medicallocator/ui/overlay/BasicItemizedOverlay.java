@@ -54,20 +54,12 @@ public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 			(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
 
-		final TextView addressTextView = (TextView) layout.findViewById(R.id.address_textview); 
-		final TextView phoneTextView = (TextView) layout.findViewById(R.id.phone_textview); 
-		final TextView emailTextView = (TextView) layout.findViewById(R.id.email_textview); 
-
-		addressTextView.setText(item.getFacility().getAddress());
-		phoneTextView.setText(item.getFacility().getPhone());
-		emailTextView.setText(item.getFacility().getEmail());
-		
 		FacilityDialogUtils.setUIProperties(context, layout, item.getFacility());
 		
 		final AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setView(layout);
 		final AlertDialog dialog = builder.create();
-		dialog.setTitle(item.getFacility().getName());
+		dialog.setTitle(context.getString(R.string.dialogfacilitybubble_title));
 		dialog.show();
 		
 		return true;
