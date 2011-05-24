@@ -66,7 +66,7 @@ public class DatabaseProvider implements IFacilityProvider {
 
 		final Cursor cursor = 
 			queryDB(listener, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
-					selection, selectionArgs);
+					selection, selectionArgs, null);
 		
 		/* Return the Cursor */
 		return cursor;
@@ -98,7 +98,7 @@ public class DatabaseProvider implements IFacilityProvider {
 
 		final Cursor cursor = 
 			queryDB(listener, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
-					selection, selectionArgs);
+					selection, selectionArgs, null);
 		
 		/* Return the Cursor */
 		return cursor;
@@ -116,7 +116,7 @@ public class DatabaseProvider implements IFacilityProvider {
 
 		final Cursor cursor = 
 			queryDB(listener, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
-					selection, selectionArgs);
+					selection, selectionArgs, Facility.Columns.ADDRESS);
 		
 		/* Return the Cursor */
 		return cursor;
@@ -133,7 +133,7 @@ public class DatabaseProvider implements IFacilityProvider {
 		
 		final Cursor cursor = 
 			queryDB(null, 0, Tables.FACILITY, Facility.getDefaultProjection(), 
-					selection, selectionArgs);
+					selection, selectionArgs, null);
 		
 		if (!cursor.moveToFirst()) return null;
 		if (cursor.getCount() > 1) {
@@ -158,7 +158,7 @@ public class DatabaseProvider implements IFacilityProvider {
 	
 	private Cursor queryDB(final AsyncQueryListener listener, final int token, final String table, 
 			final String[] projection, 
-			final String selection, final String[] selectionArgs) {
+			final String selection, final String[] selectionArgs, final String orderBy) {
 		Log.d(TAG, "Starting query -- " +
 				"table[" + table + "], " +
 				"projection[" + Arrays.toString(projection) + "], " +
@@ -172,7 +172,7 @@ public class DatabaseProvider implements IFacilityProvider {
 					/* Query the database */
 					SQLiteDatabase db = dbHelper.getReadableDatabase();
 					final Cursor cursor = 
-						db.query(table, projection, selection, selectionArgs, null, null, null);
+						db.query(table, projection, selection, selectionArgs, null, null, orderBy);
 					
 					/* Make a callback from the handler's Thread */
 					final Map<String, Integer> mapping = Facility.getDefaultColumnMapping();
