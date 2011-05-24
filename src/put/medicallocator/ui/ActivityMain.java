@@ -58,7 +58,6 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     private LocationListener myLocationListener;
     private GeoPoint lastVisibleGeoPoint;
     private int noChangeCounter = 0;
-    private String[] filters = null;
     
     private Handler handler;
     private State state;
@@ -315,7 +314,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 				try {
 					provider.getFacilitiesWithinArea(
 							ActivityMain.this, 
-							lowerLeftLocation, upperRightLocation, filters);
+							lowerLeftLocation, upperRightLocation, state.filters);
 				} catch (Exception e) {
 					// It shouldn't happen - even if the query just won't be executed.
 				}
@@ -330,15 +329,15 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		currentDistanceInKilometers = intent.getIntExtra(
 				ActivityFilter.RESULT_DISTANCE, 
 				ActivityFilter.DEFAULT_DISTANCE_IN_KILOMETERS);
-		filters = intent.getStringArrayExtra(ActivityFilter.RESULT_FILTER_ARRAY);;
+		state.filters = intent.getStringArrayExtra(ActivityFilter.RESULT_FILTER_ARRAY);
 		
 		Log.d(TAG, "Received filters: [ " + currentDistanceInKilometers + " km], " 
-				+ Arrays.toString(filters));
+				+ Arrays.toString(state.filters));
 	}
 
 	private void openFilterOptions() {
 		final Intent intent = new Intent(this, ActivityFilter.class);
-		intent.putExtra(ActivityFilter.INPUT_FILTER_ARRAY, filters);
+		intent.putExtra(ActivityFilter.INPUT_FILTER_ARRAY, state.filters);
 		intent.putExtra(ActivityFilter.INPUT_DISTANCE, currentDistanceInKilometers);
 		startActivityForResult(intent, ActivityFilter.FILTER_REQUEST_CODE);
 	}
@@ -368,6 +367,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		public int zoomLevel;
 		public boolean isTrackingEnabled = false;
 		public boolean isGPSEnabled = false;
+	    public String[] filters = null;
 		
 		private State () {
 			currentPoint = START_GEOPOINT;
