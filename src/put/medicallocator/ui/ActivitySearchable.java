@@ -122,15 +122,10 @@ public class ActivitySearchable extends ListActivity implements AsyncQueryListen
 		Facility facility = 
 			TypeConverter.getFacilityFromCursorCurrentPosition(columnMapping, cursor); 
 
-		LayoutInflater inflater = getLayoutInflater(); 
-		View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
+		final LayoutInflater inflater = getLayoutInflater();
 
-		FacilityDialogUtils.setUIProperties(this, layout, facility);
-		
-		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setView(layout);
-		final AlertDialog dialog = builder.create();
-		dialog.setTitle(getString(R.string.dialogfacilitybubble_title));
+		final AlertDialog dialog = 
+			FacilityDialogUtils.createFacilityDialog(this, inflater, facility);
 		dialog.show();
 	}
 	

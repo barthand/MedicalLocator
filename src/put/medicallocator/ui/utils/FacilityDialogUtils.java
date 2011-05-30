@@ -2,10 +2,12 @@ package put.medicallocator.ui.utils;
 
 import put.medicallocator.R;
 import put.medicallocator.io.Facility;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -14,7 +16,20 @@ import android.widget.TextView;
 public class FacilityDialogUtils {
 	private static final String TAG = FacilityDialogUtils.class.getName();
 
-	public static void setUIProperties(final Context context, View layout, final Facility facility) {
+	public static AlertDialog createFacilityDialog(Context context, LayoutInflater inflater, Facility facility) {
+		// Create, inflate and populate the dialog layout.
+		View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
+		FacilityDialogUtils.setUIProperties(context, layout, facility);
+		
+		// Create the Dialog itself.
+		final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setView(layout);
+		final AlertDialog dialog = builder.create();
+		dialog.setTitle(context.getString(R.string.dialogfacilitybubble_title));
+		return dialog;
+	}
+	
+	private static void setUIProperties(final Context context, View layout, final Facility facility) {
 		// Set the primary information
 		final TextView nameTextView = (TextView) layout.findViewById(R.id.name_textview);
 		final TextView addressTextView = (TextView) layout.findViewById(R.id.address_textview); 

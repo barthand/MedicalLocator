@@ -2,13 +2,11 @@ package put.medicallocator.ui.overlay;
 
 import java.util.ArrayList;
 
-import put.medicallocator.R;
 import put.medicallocator.ui.utils.FacilityDialogUtils;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
-import android.view.View;
 
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
@@ -51,14 +49,8 @@ public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 		LayoutInflater inflater = 
 			(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
-
-		FacilityDialogUtils.setUIProperties(context, layout, item.getFacility());
-		
-		final AlertDialog.Builder builder = new AlertDialog.Builder(context);
-		builder.setView(layout);
-		final AlertDialog dialog = builder.create();
-		dialog.setTitle(context.getString(R.string.dialogfacilitybubble_title));
+		final AlertDialog dialog = 
+			FacilityDialogUtils.createFacilityDialog(context, inflater, item.getFacility());
 		dialog.show();
 		
 		return true;
