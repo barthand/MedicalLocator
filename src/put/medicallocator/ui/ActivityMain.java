@@ -9,8 +9,10 @@ import put.medicallocator.io.Facility;
 import put.medicallocator.io.IFacilityProvider;
 import put.medicallocator.io.IFacilityProvider.AsyncQueryListener;
 import put.medicallocator.io.IFacilityProviderManager;
+import put.medicallocator.io.route.Route;
 import put.medicallocator.ui.overlay.BasicItemizedOverlay;
 import put.medicallocator.ui.overlay.FacilityOverlayItem;
+import put.medicallocator.ui.overlay.RouteOverlay;
 import put.medicallocator.utils.GeoUtils;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -24,6 +26,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -42,8 +45,6 @@ import com.google.android.maps.Overlay;
 
 public class ActivityMain extends MapActivity implements AsyncQueryListener {
 
-	// TODO: Add the options to turn off/on location tracking.
-	
 	private static final String TAG = ActivityMain.class.getName(); 
 	
 	/** Defines the start GeoPoint. Yeah, let's all do the Poznan! ;) */
@@ -55,11 +56,13 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	
     private MapView mapView;
     private MyLocationOverlay locationOverlay;
+    private RouteOverlay routeOverlay;
     private LocationListener myLocationListener;
     private GeoPoint lastVisibleGeoPoint;
     private int noChangeCounter = 0;
     
     private Handler handler;
+    private RouteHandler routeHandler;
     private State state;
     
 	/** Called when the activity is first created. */
@@ -67,9 +70,6 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-		/* Initialize a handler here to ensure that it is attached to the UI thread */
-		handler = new Handler();
 
 		/* Do we have previous instance data? */
 		state = (State) getLastNonConfigurationInstance();
@@ -97,6 +97,10 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		final MapController mapController = mapView.getController();
 		mapController.setCenter(state.currentPoint);
 		mapController.setZoom(state.zoomLevel);
+		
+		/* Initialize a handlers here to ensure that they're attached to the UI thread */
+		handler = new Handler();
+		routeHandler = new RouteHandler();
     }
 
     @Override
@@ -206,67 +210,6 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		return false;
 	}
 
-	public void onQueryComplete(int token, Cursor cursor,
-			Map<String, Integer> columnMapping) {
-		Log.e(TAG, "Query finished. Returned rows: " + cursor.getCount());
-		if (!cursor.moveToFirst()) {
-			cursor.close();
-			runOnUiThread(new Runnable() {
-				public void run() {
-					final List<Overlay> overlays = mapView.getOverlays();
-					overlays.clear();
-					overlays.add(locationOverlay);
-					Log.d(TAG, "Posting invalidate on MapView");
-					mapView.invalidate();
-				}
-			});
-			return;
-		}
-		
-		final Drawable marker = getResources().getDrawable(R.drawable.marker);
-		final BasicItemizedOverlay itemizedOverlay = new BasicItemizedOverlay(this, marker);
-
-		synchronized (ActivityMain.class) {
-			Log.d(TAG, "Starting going through the results - creating the overlays");
-			final double start = System.currentTimeMillis();
-			do {
-				final String name = cursor.getString(columnMapping.get(Facility.Columns.NAME));
-				final String address = cursor.getString(columnMapping.get(Facility.Columns.ADDRESS));
-				final String phone = cursor.getString(columnMapping.get(Facility.Columns.PHONE));
-				final String email  = cursor.getString(columnMapping.get(Facility.Columns.EMAIL));
-				final double latitude = cursor.getDouble(columnMapping.get(Facility.Columns.LATITUDE));
-				final double longitude = cursor.getDouble(columnMapping.get(Facility.Columns.LONGITUDE));
-				final GeoPoint geoPoint = GeoUtils.convertToGeoPoint(latitude, longitude);
-				
-				final Facility facility = new Facility();
-				facility.setName(name);
-				facility.setAddress(address);
-				facility.setPhone(phone);
-				facility.setEmail(email);
-				facility.setLocation(geoPoint);
-				final FacilityOverlayItem overlayItem = new FacilityOverlayItem(facility, geoPoint);
-				itemizedOverlay.addOverlay(overlayItem);
-			} while (cursor.moveToNext());
-			Log.d(TAG, "Overlays created. It took: " + (System.currentTimeMillis() - start) + " ms");
-			
-			// TODO: Find a less hacky way to avoid performance problem.
-			itemizedOverlay.populateNow();
-			
-			runOnUiThread(new Runnable() {
-				public void run() {
-					final List<Overlay> overlays = mapView.getOverlays();
-					overlays.clear();
-					overlays.add(itemizedOverlay);
-					overlays.add(locationOverlay);
-					Log.d(TAG, "Posting invalidate on MapView");
-					mapView.invalidate();
-				}
-			});
-		}
-		
-		cursor.close();
-	}
-
 	private Runnable doQueryIfRequired = new Runnable() {
 		public void run() {
 			/* Save the exact coordinates of the top-left visible vertex of MapView */
@@ -325,6 +268,84 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		}
 	};
 
+	public void onQueryComplete(int token, Cursor cursor,
+			Map<String, Integer> columnMapping) {
+		Log.e(TAG, "Query finished. Returned rows: " + cursor.getCount());
+		if (!cursor.moveToFirst()) {
+			cursor.close();
+			runOnUiThread(new Runnable() {
+				public void run() {
+					final List<Overlay> overlays = mapView.getOverlays();
+					overlays.clear();
+					overlays.add(locationOverlay);
+					Log.d(TAG, "Posting invalidate on MapView");
+					mapView.invalidate();
+				}
+			});
+			return;
+		}
+		
+		final Drawable marker = getResources().getDrawable(R.drawable.marker);
+		final BasicItemizedOverlay itemizedOverlay = 
+			new BasicItemizedOverlay(this, marker, routeHandler);
+
+		synchronized (ActivityMain.class) {
+			Log.d(TAG, "Starting going through the results - creating the overlays");
+			final double start = System.currentTimeMillis();
+			do {
+				final String name = cursor.getString(columnMapping.get(Facility.Columns.NAME));
+				final String address = cursor.getString(columnMapping.get(Facility.Columns.ADDRESS));
+				final String phone = cursor.getString(columnMapping.get(Facility.Columns.PHONE));
+				final String email  = cursor.getString(columnMapping.get(Facility.Columns.EMAIL));
+				final double latitude = cursor.getDouble(columnMapping.get(Facility.Columns.LATITUDE));
+				final double longitude = cursor.getDouble(columnMapping.get(Facility.Columns.LONGITUDE));
+				final GeoPoint geoPoint = GeoUtils.convertToGeoPoint(latitude, longitude);
+				
+				final Facility facility = new Facility();
+				facility.setName(name);
+				facility.setAddress(address);
+				facility.setPhone(phone);
+				facility.setEmail(email);
+				facility.setLocation(geoPoint);
+				final FacilityOverlayItem overlayItem = new FacilityOverlayItem(facility, geoPoint);
+				itemizedOverlay.addOverlay(overlayItem);
+			} while (cursor.moveToNext());
+			Log.d(TAG, "Overlays created. It took: " + (System.currentTimeMillis() - start) + " ms");
+			
+			// TODO: Find a less hacky way to avoid performance problem.
+			itemizedOverlay.populateNow();
+			
+			runOnUiThread(new Runnable() {
+				public void run() {
+					final List<Overlay> overlays = mapView.getOverlays();
+					overlays.clear();
+					overlays.add(itemizedOverlay);
+					overlays.add(locationOverlay);
+					if (routeOverlay != null) {
+						overlays.add(routeOverlay);
+					}
+					Log.d(TAG, "Posting invalidate on MapView");
+					mapView.invalidate();
+				}
+			});
+		}
+		
+		cursor.close();
+	}
+
+	private Runnable onFirstFixRunnable = new Runnable() {
+		
+		public void run() {
+			runOnUiThread(new Runnable() {
+				
+				public void run() {
+					final MapController mapController = mapView.getController();
+					mapController.animateTo(locationOverlay.getMyLocation());
+				}
+			});
+		}
+	};
+	
 	private void setFilters(Intent intent) {
 		currentDistanceInKilometers = intent.getIntExtra(
 				ActivityFilter.RESULT_DISTANCE, 
@@ -374,12 +395,16 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			zoomLevel = START_ZOOM_LEVEL;
 		}
 	}
-	
+
 	private class MyLocationListener implements LocationListener {
 
 		public void onLocationChanged(Location location) {
-			Log.d(TAG, "Received the Location update from " + location.getProvider() + ": " + 
+			Log.d(TAG, "Received the Location update from " + location.getProvider() + ": " +
 					location.getLatitude() + "; " + location.getLongitude());
+			final GeoPoint currentPoint = GeoUtils.convertToGeoPoint(
+					location.getLatitude(), location.getLongitude()); 
+			routeHandler.setCurrentLocation(currentPoint);
+			
 			if (mapView != null && state.isTrackingEnabled) {
 				final String provider = location.getProvider();
 				
@@ -389,9 +414,8 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 				} else if (LocationManager.GPS_PROVIDER.equals(provider)) {
 					state.isGPSEnabled = true;
 				}
-				
-				state.currentPoint = GeoUtils.convertToGeoPoint(
-						location.getLatitude(), location.getLongitude());
+
+				state.currentPoint = currentPoint; 
 
 				runOnUiThread(new Runnable() {
 					public void run() {
@@ -417,16 +441,31 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		}
 	}
 	
-	private Runnable onFirstFixRunnable = new Runnable() {
+	public class RouteHandler extends Handler {
+		private Route route;
+		private GeoPoint currentLocation;
 		
-		public void run() {
-			runOnUiThread(new Runnable() {
-				
-				public void run() {
-					final MapController mapController = mapView.getController();
-					mapController.animateTo(locationOverlay.getMyLocation());
-				}
-			});
+		public void setRoute(Route route) {
+			this.route = route;
 		}
-	};
+
+		public void setCurrentLocation(GeoPoint location) {
+			currentLocation = location;
+		}
+		
+		public GeoPoint getCurrentLocation() {
+			return currentLocation;
+		}
+
+		@Override
+		public void handleMessage(Message msg) {
+            List<Overlay> listOfOverlays = mapView.getOverlays();
+            listOfOverlays.remove(routeOverlay);
+            routeOverlay = new RouteOverlay(route, mapView);
+            listOfOverlays.add(routeOverlay);
+            mapView.invalidate();
+		}
+
+}
+
 }

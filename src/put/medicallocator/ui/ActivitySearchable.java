@@ -24,7 +24,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-
 public class ActivitySearchable extends ListActivity implements AsyncQueryListener {
 	
 	private static final String TAG = ActivitySearchable.class.getName();
@@ -124,8 +123,9 @@ public class ActivitySearchable extends ListActivity implements AsyncQueryListen
 
 		final LayoutInflater inflater = getLayoutInflater();
 
-		final AlertDialog dialog = 
-			FacilityDialogUtils.createFacilityDialog(this, inflater, facility);
+		final FacilityDialogUtils dialogUtils = 
+			new FacilityDialogUtils(this, facility, inflater);
+		final AlertDialog dialog = dialogUtils.createFacilityDialog(null);
 		dialog.show();
 	}
 	

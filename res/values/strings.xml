@@ -19,6 +19,7 @@
     <string name="dialogfacilitybubble_email">E-mail it</string>
     <string name="dialogfacilitybubble_email_app_chooser">Choose the e-mail application</string>
     <string name="dialogfacilitybubble_www">Go to webpage</string>
+    <string name="dialogfacilitybubble_route">Find the route</string>
     <string name="dialogabout_about">MedicalLocator is a map-based application presenting the medical facilities in Poland (at least currently). The idea was to collect the public-available data about the medical facilities, present it in the user-friendly form to the Android users and allow them use this data.\n\nEnjoy!</string>
     <string name="search_hint">What are you looking for?</string>
 </resources>

@@ -14,5 +14,6 @@
         <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_call" android:id="@+id/call_button" android:layout_width="0dip" android:layout_weight="1"></Button>
         <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_email" android:id="@+id/email_button" android:layout_width="0dip" android:layout_weight="1"></Button>
         <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_www" android:id="@+id/www_button" android:layout_width="0dip" android:layout_weight="1"></Button>
+        <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_route" android:id="@+id/route_button" android:layout_width="0dip" android:layout_weight="1"></Button>
     </LinearLayout>
 </LinearLayout>

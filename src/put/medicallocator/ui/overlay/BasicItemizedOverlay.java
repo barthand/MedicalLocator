@@ -2,6 +2,7 @@ package put.medicallocator.ui.overlay;
 
 import java.util.ArrayList;
 
+import put.medicallocator.ui.ActivityMain.RouteHandler;
 import put.medicallocator.ui.utils.FacilityDialogUtils;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -15,14 +16,16 @@ public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 	protected Context context;
 	private ArrayList<FacilityOverlayItem> overlays = new ArrayList<FacilityOverlayItem>();
+	private RouteHandler handler;
 
 	public BasicItemizedOverlay(Drawable drawable) {
 		super(boundCenterBottom(drawable));
 	}
 	
-	public BasicItemizedOverlay(Context context, Drawable drawable) {
+	public BasicItemizedOverlay(Context context, Drawable drawable, RouteHandler handler) {
 		this(drawable);
 		this.context = context;
+		this.handler = handler;
 	}
 
 	public void addOverlay(FacilityOverlayItem overlayItem) {
@@ -49,8 +52,10 @@ public class BasicItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 
 		LayoutInflater inflater = 
 			(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		final AlertDialog dialog = 
-			FacilityDialogUtils.createFacilityDialog(context, inflater, item.getFacility());
+		
+		final FacilityDialogUtils dialogUtils = 
+			new FacilityDialogUtils(context, item.getFacility(), inflater);
+		final AlertDialog dialog = dialogUtils.createFacilityDialog(handler);
 		dialog.show();
 		
 		return true;

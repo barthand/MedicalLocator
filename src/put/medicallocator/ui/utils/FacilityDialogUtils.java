@@ -1,7 +1,15 @@
 package put.medicallocator.ui.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
 import put.medicallocator.R;
 import put.medicallocator.io.Facility;
+import put.medicallocator.io.route.RoadProvider;
+import put.medicallocator.ui.ActivityMain.RouteHandler;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -16,20 +24,37 @@ import android.widget.TextView;
 public class FacilityDialogUtils {
 	private static final String TAG = FacilityDialogUtils.class.getName();
 
-	public static AlertDialog createFacilityDialog(Context context, LayoutInflater inflater, Facility facility) {
+	private Context context;
+	private Facility facility;
+	private LayoutInflater inflater;
+	private RouteHandler handler;
+	private AlertDialog dialog; 
+	
+	public FacilityDialogUtils(Context context, Facility facility, LayoutInflater inflater) {
+		this.context = context;
+		this.facility = facility;
+		this.inflater = inflater;
+	}
+	
+	public AlertDialog createFacilityDialog(RouteHandler handler) {
+		this.handler = handler;
+		
 		// Create, inflate and populate the dialog layout.
 		View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
-		FacilityDialogUtils.setUIProperties(context, layout, facility);
+		setUIProperties(layout);
 		
 		// Create the Dialog itself.
 		final AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setView(layout);
 		final AlertDialog dialog = builder.create();
 		dialog.setTitle(context.getString(R.string.dialogfacilitybubble_title));
+
+		this.dialog = dialog;
+		
 		return dialog;
 	}
 	
-	private static void setUIProperties(final Context context, View layout, final Facility facility) {
+	private void setUIProperties(View layout) {
 		// Set the primary information
 		final TextView nameTextView = (TextView) layout.findViewById(R.id.name_textview);
 		final TextView addressTextView = (TextView) layout.findViewById(R.id.address_textview); 
@@ -47,6 +72,7 @@ public class FacilityDialogUtils {
 		final Button callButton = (Button) layout.findViewById(R.id.call_button);
 		final Button emailButton = (Button) layout.findViewById(R.id.email_button); 
 		final Button webpageButton = (Button) layout.findViewById(R.id.www_button); 
+		final Button routeButton = (Button) layout.findViewById(R.id.route_button); 
 
 		/* Check for e-mail and webpage */
 		final String facilityEmail = facility.getEmail();
@@ -116,5 +142,43 @@ public class FacilityDialogUtils {
 		} else {
 			webpageButton.setVisibility(View.GONE);			
 		}
+		
+		/* Check if the routeHandler is provided, if yes allow to find the route */
+		if (handler != null && handler.getCurrentLocation() != null) {
+			routeButton.setEnabled(true);
+			routeButton.setOnClickListener(new OnClickListener() {
+				
+				public void onClick(View v) {
+					double fromLat = handler.getCurrentLocation().getLatitudeE6() / 1E6;
+					double fromLong = handler.getCurrentLocation().getLongitudeE6() / 1E6;
+					double toLat = facility.getLocation().getLatitudeE6() / 1E6;
+					double toLong = facility.getLocation().getLongitudeE6() / 1E6;
+
+					String url = RoadProvider.getUrl(fromLat, fromLong, toLat, toLong);
+					InputStream is = getInputStreamFromURLConnection(url);
+					handler.setRoute(RoadProvider.getRoute(is));
+					handler.sendEmptyMessage(0);
+					if (dialog != null) { 
+						dialog.dismiss();
+					}
+				}
+			});
+		} else {
+			routeButton.setEnabled(false);
+		}
 	}
+	
+	private static InputStream getInputStreamFromURLConnection(String url) {
+        InputStream is = null;
+        try {
+                URLConnection conn = new URL(url).openConnection();
+                is = conn.getInputStream();
+        } catch (MalformedURLException e) {
+                e.printStackTrace();
+        } catch (IOException e) {
+                e.printStackTrace();
+        }
+        return is;
+	}
+	
 }
