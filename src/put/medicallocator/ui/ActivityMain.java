@@ -93,7 +93,8 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		locationOverlay = new MyLocationOverlay(this, mapView);
 		mapView.setBuiltInZoomControls(true);
 		myLocationListener = new MyLocationListener();
-
+		routeOverlay = state.routeOverlay;
+		
 		final MapController mapController = mapView.getController();
 		mapController.setCenter(state.currentPoint);
 		mapController.setZoom(state.zoomLevel);
@@ -126,6 +127,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
         locationOverlay.enableMyLocation();
         locationOverlay.runOnFirstFix(onFirstFixRunnable);
 		mapView.getOverlays().add(locationOverlay);
+		if (routeOverlay != null) mapView.getOverlays().add(routeOverlay);
 		
         /* Post query job */
 		noChangeCounter = 0;
@@ -152,6 +154,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     	handler.removeCallbacks(doQueryIfRequired);
     	state.currentPoint = mapView.getMapCenter();
     	state.zoomLevel = mapView.getZoomLevel();
+    	state.routeOverlay = routeOverlay;
     	return state;
     }
     
@@ -389,6 +392,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		public boolean isTrackingEnabled = false;
 		public boolean isGPSEnabled = false;
 	    public String[] filters = null;
+	    public RouteOverlay routeOverlay = null;
 		
 		private State () {
 			currentPoint = START_GEOPOINT;
