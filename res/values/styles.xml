@@ -12,6 +12,10 @@
     <style name="DialogButton">
         <item name="android:layout_height">40dip</item>
     </style>
+    
+	<style name="ImageButton">
+        <item name="android:padding">5dip</item>
+    </style>
 
     <style name="DialogText">
 		<item name="android:textColor">@color/dialog_text</item>

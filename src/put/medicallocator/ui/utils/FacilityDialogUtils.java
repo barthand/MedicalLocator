@@ -18,7 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class FacilityDialogUtils {
@@ -69,10 +69,10 @@ public class FacilityDialogUtils {
 		// The trick here is that in the e-mail field, we may have WWW page as well.
 		String email = null;
 		String webpage = null;
-		final Button callButton = (Button) layout.findViewById(R.id.call_button);
-		final Button emailButton = (Button) layout.findViewById(R.id.email_button); 
-		final Button webpageButton = (Button) layout.findViewById(R.id.www_button); 
-		final Button routeButton = (Button) layout.findViewById(R.id.route_button); 
+		final ImageButton callButton = (ImageButton) layout.findViewById(R.id.call_button);
+		final ImageButton emailButton = (ImageButton) layout.findViewById(R.id.email_button);
+		final ImageButton webpageButton = (ImageButton) layout.findViewById(R.id.www_button);
+		final ImageButton routeButton = (ImageButton) layout.findViewById(R.id.route_button);
 
 		/* Check for e-mail and webpage */
 		final String facilityEmail = facility.getEmail();
@@ -117,9 +117,9 @@ public class FacilityDialogUtils {
 							Intent.createChooser(emailIntent, chooserMessage));
 				}
 			});
-			emailButton.setVisibility(View.VISIBLE);
+			emailButton.setEnabled(true);
 		} else {
-			emailButton.setVisibility(View.GONE);
+			emailButton.setEnabled(false);
 		}
 		
 		/* Do the appropriate UI actions if the webpage exists */
@@ -138,9 +138,9 @@ public class FacilityDialogUtils {
 					context.startActivity(webIntent);
 				}
 			});
-			webpageButton.setVisibility(View.VISIBLE);
+			webpageButton.setEnabled(true);
 		} else {
-			webpageButton.setVisibility(View.GONE);			
+			webpageButton.setEnabled(false);
 		}
 		
 		/* Check if the routeHandler is provided, if yes allow to find the route */

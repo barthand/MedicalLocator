@@ -10,10 +10,14 @@
     <TextView style="@style/DialogText" android:id="@+id/address_textview"/>
     <TextView style="@style/DialogText" android:id="@+id/phone_textview"/>
     <TextView style="@style/DialogText" android:id="@+id/email_textview"/>
-    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="15dip">
-        <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_call" android:id="@+id/call_button" android:layout_width="0dip" android:layout_weight="1"></Button>
+    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="15dip" android:gravity="right">
+        <!--  <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_call" android:id="@+id/call_button" android:layout_width="0dip" android:layout_weight="1"></Button>
         <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_email" android:id="@+id/email_button" android:layout_width="0dip" android:layout_weight="1"></Button>
         <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_www" android:id="@+id/www_button" android:layout_width="0dip" android:layout_weight="1"></Button>
-        <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_route" android:id="@+id/route_button" android:layout_width="0dip" android:layout_weight="1"></Button>
+        <Button style="@style/DialogButton" android:text="@string/dialogfacilitybubble_route" android:id="@+id/route_button" android:layout_width="0dip" android:layout_weight="1"></Button> -->
+        <ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/call_button" android:layout_height="wrap_content" android:src="@drawable/ic_phone" android:background="@null"/>
+        <ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/email_button" android:layout_height="wrap_content" android:src="@drawable/ic_gmail" android:background="@null"/>
+        <ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/www_button" android:layout_height="wrap_content" android:src="@drawable/ic_globe" android:background="@null"/>
+        <ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/route_button" android:layout_height="wrap_content" android:src="@drawable/ic_route" android:background="@null"/>
     </LinearLayout>
 </LinearLayout>
