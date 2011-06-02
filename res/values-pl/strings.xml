@@ -20,6 +20,7 @@
     <string name="dialogfacilitybubble_email_app_chooser">Wybierz aplikację do emailowania</string>
     <string name="dialogfacilitybubble_www">Idź do strony</string>
     <string name="dialogfacilitybubble_route">Znajdź drogę</string>
+    <string name="dialogfacilitybubble_nointernetroute">Błąd podczas pobierania trasy. Masz aktywne połączenie internetowe?</string>
     <string name="dialogabout_about">MedicalLocator jest aplikacją wyświetlająca na mapie placówki medyczne w Polsce. Pomysł na tą aplikację był prosty - zebrać publicznie dostępne dane na temat medycznych placówek, przedstawić je użytkownikom telefonów z Androidem w przyjaznej formie i pozwolić im korzystać z danych.\n\nMiłego korzystania z aplikacji!</string>
     <string name="search_hint">Czego szukasz?</string>
 </resources>

@@ -13,6 +13,7 @@ import put.medicallocator.ui.ActivityMain.RouteHandler;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class FacilityDialogUtils {
 	private static final String TAG = FacilityDialogUtils.class.getName();
@@ -143,8 +145,15 @@ public class FacilityDialogUtils {
 			webpageButton.setEnabled(false);
 		}
 		
-		/* Check if the routeHandler is provided, if yes allow to find the route */
-		if (handler != null && handler.getCurrentLocation() != null) {
+		/* Check if the routeHandler is provided AND internet is available, 
+		 * if yes allow to find the route */
+		final ConnectivityManager conMgr = 
+			(ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);  
+		final boolean connectionExist = (
+			conMgr.getActiveNetworkInfo() != null &&
+			conMgr.getActiveNetworkInfo().isAvailable() &&
+			conMgr.getActiveNetworkInfo().isConnected());
+		if (handler != null && handler.getCurrentLocation() != null && connectionExist) {
 			routeButton.setEnabled(true);
 			routeButton.setOnClickListener(new OnClickListener() {
 				
@@ -154,12 +163,18 @@ public class FacilityDialogUtils {
 					double toLat = facility.getLocation().getLatitudeE6() / 1E6;
 					double toLong = facility.getLocation().getLongitudeE6() / 1E6;
 
-					String url = RoadProvider.getUrl(fromLat, fromLong, toLat, toLong);
-					InputStream is = getInputStreamFromURLConnection(url);
-					handler.setRoute(RoadProvider.getRoute(is));
-					handler.sendEmptyMessage(0);
-					if (dialog != null) { 
-						dialog.dismiss();
+					final String url = RoadProvider.getUrl(fromLat, fromLong, toLat, toLong);
+					final InputStream is = getInputStreamFromURLConnection(url);
+					if (is != null) {
+						handler.setRoute(RoadProvider.getRoute(is));
+						handler.sendEmptyMessage(0);
+						if (dialog != null) { 
+							dialog.dismiss();
+						}
+					} else {
+						final String text = context.getResources().
+							getString(R.string.dialogfacilitybubble_nointernetroute);
+						Toast.makeText(context, text, Toast.LENGTH_SHORT).show(); 
 					}
 				}
 			});
@@ -174,9 +189,9 @@ public class FacilityDialogUtils {
                 URLConnection conn = new URL(url).openConnection();
                 is = conn.getInputStream();
         } catch (MalformedURLException e) {
-                e.printStackTrace();
+                // Shouldn't happen
         } catch (IOException e) {
-                e.printStackTrace();
+                // No internet connection available.
         }
         return is;
 	}
