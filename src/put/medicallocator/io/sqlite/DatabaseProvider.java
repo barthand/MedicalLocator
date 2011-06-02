@@ -222,9 +222,10 @@ public class DatabaseProvider implements IFacilityProvider {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			Log.d(TAG, "Executing onCreate()");
 			/* Due to copying the DB from the local assets/ folder, this is commented out. */
-			/*db.execSQL("CREATE TABLE " + Tables.FACILITY + " ("
+			/*
+			Log.d(TAG, "Executing onCreate()");
+			db.execSQL("CREATE TABLE " + Tables.FACILITY + " ("
 	                + Facility.Columns._ID + " " + FacilityColumnsParams.PARAM_ID + ","
 	                + Facility.Columns.NAME + " " + FacilityColumnsParams.PARAM_NAME + ","
 	                + Facility.Columns.ADDRESS + " " + FacilityColumnsParams.PARAM_ADDRESS + ","
@@ -238,8 +239,9 @@ public class DatabaseProvider implements IFacilityProvider {
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			/* Due to copying the DB from the local assets/ folder, this is commented out. */
+			/*
 			Log.d(TAG, "onUpgrade() from " + oldVersion + " to " + newVersion);
-			/*if (oldVersion != DatabaseContract.DATABASE_VERSION) {
+			if (oldVersion != DatabaseContract.DATABASE_VERSION) {
 		        Log.d(TAG, "onUpgrade(): Dropping all tables!");
 				db.execSQL("DROP TABLE IF EXISTS " + Tables.FACILITY);
 				onCreate(db);
@@ -247,14 +249,21 @@ public class DatabaseProvider implements IFacilityProvider {
 		}
 		
 		/**
-	     * Creates an empty database on the system and rewrites it with your own database.
+	     * Checks if the DB exists and is current. If those conditions are not met, 
+	     * the DB is created from scratch.
 	     */
 	    public void createAndCopyDBIfDoesNotExist() {
-	    	boolean dbExists = checkDB();
-	    	Log.d(TAG, "Does the DB already exists? Result: " + dbExists);
-	    	if (dbExists) {
-	    		// Do nothing - database already exists.
+	    	SQLiteDatabase db = getDB();
+	    	Log.d(TAG, "Does the DB already exist? Result: " + (db != null ? true : false));
+	    	if (db != null && db.getVersion() == DatabaseContract.DATABASE_VERSION) {
+	    		// Do nothing - database already exists and is current.
+    			db.close();
 	    	} else{
+	    		if (db != null) {
+	    			Log.d(TAG, "Upgrading the DB from version " + db.getVersion() 
+	    					+ " to " + DatabaseContract.DATABASE_VERSION);
+	    			db.close();
+	    		}
 	    		// By calling this method an empty database will be created into the default 
 	    		// application path and we'll be able to overwrite that database with other database.
 		    	Log.d(TAG, "Forcing the Android to create the empty DB.");
@@ -271,21 +280,17 @@ public class DatabaseProvider implements IFacilityProvider {
 	    }
 	 
 	    /**
-	     * Check if the database already exists to avoid re-copying the DB each time when the 
-	     * application is opened.
+	     * Returns the {@link SQLiteDatabase} object if the DB exists. Otherwise, returns null. 
 	     */
-	    private boolean checkDB() {
-	    	SQLiteDatabase checkDB = null;
+	    private SQLiteDatabase getDB() {
+	    	SQLiteDatabase currentDB = null;
 	    	try{
 	    		String myPath = DB_PATH + DatabaseContract.DATABASE_NAME;
-	    		checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+	    		currentDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
 	    	} catch (SQLiteException e) {
 	    		// Database doesn't exist yet.
-	    	} finally {
-	    		if (checkDB != null)
-	    			checkDB.close();
 	    	}
-	    	return checkDB != null ? true : false;
+	    	return currentDB;
 	    }
 	 
 	    /**
