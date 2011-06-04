@@ -10,6 +10,7 @@ import java.util.Map;
 import put.medicallocator.io.Facility;
 import put.medicallocator.io.IFacilityProvider;
 import put.medicallocator.io.sqlite.DatabaseContract.Tables;
+import put.medicallocator.utils.Log;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
@@ -18,7 +19,6 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.os.Handler;
-import android.util.Log;
 
 /**
  * {@link DatabaseProvider} shall be used for querying, deleting, inserting the medical facilities

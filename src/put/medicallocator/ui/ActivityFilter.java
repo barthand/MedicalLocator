@@ -5,10 +5,10 @@ import java.util.Arrays;
 
 import put.medicallocator.R;
 import put.medicallocator.utils.FilterManager;
+import put.medicallocator.utils.Log;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -23,7 +23,7 @@ public class ActivityFilter extends ListActivity {
 	/** 
 	 * Indicates the default distance in kilometers around which facilities query will be performed 
 	 */
-	public static final int DEFAULT_DISTANCE_IN_KILOMETERS = 5;
+	public static final int DEFAULT_DISTANCE_IN_KILOMETERS = 4;
 
 	/** 
 	 * Indicates the maximum distance in kilometers around which facilities query will be performed 
