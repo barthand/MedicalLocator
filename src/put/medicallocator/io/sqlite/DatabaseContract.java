@@ -7,7 +7,7 @@ package put.medicallocator.io.sqlite;
 public class DatabaseContract {
 
     protected static final String DATABASE_NAME = "locator.db";
-    protected static final int DATABASE_VERSION = 1;
+    protected static final int DATABASE_VERSION = 2;
     
 	interface Tables {
 		String FACILITY = "facility";

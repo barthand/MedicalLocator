@@ -1,5 +1,6 @@
 package put.medicallocator.io.sqlite;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +19,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
+import android.os.Environment;
 import android.os.Handler;
 
 /**
@@ -208,11 +210,12 @@ public class DatabaseProvider implements IFacilityProvider {
 	 */
 	private static class DatabaseHelper extends SQLiteOpenHelper {
 		private static final String TAG = "DatabaseHelper";
-    	private static final String DB_PATH = "/data/data/put.medicallocator/databases/";
+    	private static final String DB_PATH = 
+    		Environment.getDataDirectory() + "/data/put.medicallocator/databases/";
     	
     	private static final int MAX_CHUNK_COUNT = 10;
     	
-		private Context context;
+    	private Context context;
 
 		public DatabaseHelper(Context context) {
 			super(context, DatabaseContract.DATABASE_NAME, null, DatabaseContract.DATABASE_VERSION);
@@ -267,7 +270,9 @@ public class DatabaseProvider implements IFacilityProvider {
 	    		// By calling this method an empty database will be created into the default 
 	    		// application path and we'll be able to overwrite that database with other database.
 		    	Log.d(TAG, "Forcing the Android to create the empty DB.");
-	        	getReadableDatabase();
+	        	db = getReadableDatabase();
+	        	// Here is the fix applied for Android 2.2.1 (f.e. Desire Z/HD)
+	        	db.close();
 	 
 	        	try {
 	    			copyDB();
@@ -283,9 +288,12 @@ public class DatabaseProvider implements IFacilityProvider {
 	     * Returns the {@link SQLiteDatabase} object if the DB exists. Otherwise, returns null. 
 	     */
 	    private SQLiteDatabase getDB() {
+    		String myPath = DB_PATH + DatabaseContract.DATABASE_NAME;
+    		File dbFile = new File(myPath);
+    		if (!dbFile.exists()) return null;
+	    	
 	    	SQLiteDatabase currentDB = null;
 	    	try{
-	    		String myPath = DB_PATH + DatabaseContract.DATABASE_NAME;
 	    		currentDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
 	    	} catch (SQLiteException e) {
 	    		// Database doesn't exist yet.
