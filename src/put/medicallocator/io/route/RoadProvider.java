@@ -32,7 +32,7 @@ public class RoadProvider {
 	public static String getUrl(double fromLat, double fromLong, double toLat,
 			double toLong) {
 		// connect to map web service
-		StringBuffer urlString = new StringBuffer();
+		StringBuilder urlString = new StringBuilder();
 		urlString.append("http://maps.google.com/maps?f=d&hl=en");
 		urlString.append("&saddr=");// from
 		urlString.append(Double.toString(fromLat));

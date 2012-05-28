@@ -2,14 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="put.medicallocator"
       android:versionCode="2"
-      android:versionName="0.9 beta2">
+      android:versionName="1.0 beta1">
 
-	<uses-sdk android:minSdkVersion="4" />
+	<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="7"/>
+
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 	<uses-permission android:name="android.permission.CALL_PHONE" />
-	 
+
     <application android:icon="@drawable/icon" android:label="@string/app_name">
     	<uses-library android:name="com.google.android.maps" />
         <activity android:name=".ui.ActivityMain"
@@ -19,23 +20,17 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data android:name="android.app.default_searchable"
-                   android:value=".ui.ActivitySearchable" />
+            <meta-data android:name="android.app.default_searchable" android:value=".ui.ActivitySearchable" />
         </activity>
 
-        <activity android:name=".ui.ActivityFilter"
-                  android:label="@string/activityfilter">
-        </activity>
-        
-        <activity android:name=".ui.ActivitySearchable" 
-        		  android:theme="@style/Theme.MedicalLocator">
+        <activity android:name=".ui.ActivityFilter"/>
+
+        <activity android:name=".ui.ActivitySearchable" android:theme="@style/Theme.MedicalLocator">
         	<intent-filter>
         	    <action android:name="android.intent.action.SEARCH" />
         	</intent-filter>
-        	<meta-data android:name="android.app.searchable"
-            	       android:resource="@xml/searchable"/>
+        	<meta-data android:name="android.app.searchable" android:resource="@xml/searchable"/>
     	</activity>
-        
 
     </application>
 </manifest>

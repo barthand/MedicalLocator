@@ -2,7 +2,7 @@ package put.medicallocator.utils;
 
 public class FilterManager {
 
-	public static final String[] availableFilters = new String[] {
+	public static final String[] AVAILABLE_FILTERS = new String[] {
 		"centrum",
 		"przychodnia",
 		"publiczny",

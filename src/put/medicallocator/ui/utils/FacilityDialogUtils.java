@@ -10,7 +10,7 @@ import put.medicallocator.R;
 import put.medicallocator.io.Facility;
 import put.medicallocator.io.route.RoadProvider;
 import put.medicallocator.ui.ActivityMain.RouteHandler;
-import put.medicallocator.utils.Log;
+import put.medicallocator.utils.MyLog;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -99,7 +99,7 @@ public class FacilityDialogUtils {
 				   intent.setData(Uri.parse("tel:" + facility.getPhone()));
 				   context.startActivity(intent);
 				} catch (Exception e) {
-				   Log.e(TAG, "Failed to invoke call", e);
+				   MyLog.e(TAG, "Failed to invoke call", e);
 				}
 			}
 		});
@@ -160,8 +160,8 @@ public class FacilityDialogUtils {
 				public void onClick(View v) {
 					double fromLat = handler.getCurrentLocation().getLatitudeE6() / 1E6;
 					double fromLong = handler.getCurrentLocation().getLongitudeE6() / 1E6;
-					double toLat = facility.getLocation().getLatitudeE6() / 1E6;
-					double toLong = facility.getLocation().getLongitudeE6() / 1E6;
+					double toLat = facility.getGeoPoint().getLatitudeE6() / 1E6;
+					double toLong = facility.getGeoPoint().getLongitudeE6() / 1E6;
 
 					final String url = RoadProvider.getUrl(fromLat, fromLong, toLat, toLong);
 					final InputStream is = getInputStreamFromURLConnection(url);

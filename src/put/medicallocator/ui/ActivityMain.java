@@ -2,29 +2,35 @@ package put.medicallocator.ui;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import put.medicallocator.R;
 import put.medicallocator.io.Facility;
-import put.medicallocator.io.IFacilityProvider;
-import put.medicallocator.io.IFacilityProvider.AsyncQueryListener;
-import put.medicallocator.io.IFacilityProviderManager;
+import put.medicallocator.io.FacilityDAOHelper;
+import put.medicallocator.io.IFacilityDAO;
 import put.medicallocator.io.route.Route;
+import put.medicallocator.io.sqlite.DatabaseFacilityDAO;
+import put.medicallocator.ui.async.AsyncFacilityWorkerHandler;
+import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryExecutor;
+import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListener;
+import put.medicallocator.ui.async.DAOInitializerAsyncTask;
+import put.medicallocator.ui.async.DAOInitializerAsyncTask.DAOInitializerListener;
 import put.medicallocator.ui.overlay.BasicItemizedOverlay;
 import put.medicallocator.ui.overlay.FacilityOverlayItem;
 import put.medicallocator.ui.overlay.RouteOverlay;
 import put.medicallocator.utils.GeoUtils;
-import put.medicallocator.utils.Log;
+import put.medicallocator.utils.MyLog;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -34,7 +40,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -43,139 +48,195 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
 
-public class ActivityMain extends MapActivity implements AsyncQueryListener {
+public class ActivityMain extends MapActivity implements DAOInitializerListener, FacilityQueryListener {
 
-	private static final String TAG = ActivityMain.class.getName(); 
-	
+	private static final String TAG = ActivityMain.class.getName();
+
+	private static final int DIALOG_INITIALIZE_DAO = 1;
+
+	private static final long TIME_WITHOUT_DESCRIPTOR_CHANGE_TO_QUERY = 500;
+
 	/** Defines the start GeoPoint. Yeah, let's all do the Poznan! ;) */
 	private static final GeoPoint START_GEOPOINT = GeoUtils.convertToGeoPoint(52.408396, 16.92838);
+
 	/** Defines the start zoom level. */
 	private static final int START_ZOOM_LEVEL = 14;
-	
+
 	private int currentDistanceInKilometers = ActivityFilter.DEFAULT_DISTANCE_IN_KILOMETERS;
-	
+
+	/* UI related */
     private MapView mapView;
     private MyLocationOverlay locationOverlay;
     private RouteOverlay routeOverlay;
+
     private LocationListener myLocationListener;
-    private GeoPoint lastVisibleGeoPoint;
-    private int noChangeCounter = 0;
-    
+
+    private GeoPoint lastMapCenterGeoPoint;
+    private long lastDescriptorChangeTimestamp;
+    private boolean queryCompleted = false;
+
     private Handler handler;
     private RouteHandler routeHandler;
     private State state;
-    
+
+    /* DAO layer */
+    private FacilityDAOHelper daoHelper;
+    private IFacilityDAO facilityDao;
+    private AsyncFacilityWorkerHandler facilityWorker;
+
+	private Runnable doQueryIfRequired = new Runnable() {
+		public void run() {
+			requery();
+		}
+	};
+
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        MyLog.d(TAG, "onCreate @ " + this.getClass().getSimpleName());
+
+        daoHelper = FacilityDAOHelper.getInstance(getApplicationContext());
+        facilityDao = new DatabaseFacilityDAO(getApplicationContext());
+        facilityWorker = new AsyncFacilityWorkerHandler(this);
 
 		/* Do we have previous instance data? */
-		state = (State) getLastNonConfigurationInstance();
-		final boolean hasPreviosState = state == null ? false : true;
-		
-		if (!hasPreviosState) {
-			// This initializes also the default values. 
+        if (getLastNonConfigurationInstance() instanceof State) {
+        	state = (State) getLastNonConfigurationInstance();
+        } else {
 			state = new State();
 		}
-		
-        /* Initialize the IFacilityProvider */
-		if (!IFacilityProviderManager.isInitialized()) {
-			Toast.makeText(this, 
-				getResources().getString(R.string.activitymain_initializing_provider), 
-				Toast.LENGTH_SHORT).show();
-			IFacilityProviderManager.getInstance(this);
-		}
-        
+
+    	final DAOInitializerAsyncTask retrievedAsyncTask = state.daoInitializerAsyncTask;
+        if (retrievedAsyncTask != null) {
+        	if (retrievedAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
+            	retrievedAsyncTask.setListener(this);
+        	}
+        } else {
+    		if (!daoHelper.isDataPrepared()) {
+    			final DAOInitializerAsyncTask daoInitializerAsyncTask = new DAOInitializerAsyncTask(daoHelper, this);
+    			state.daoInitializerAsyncTask = daoInitializerAsyncTask;
+
+    			showDialog(DIALOG_INITIALIZE_DAO);
+
+    			daoInitializerAsyncTask.execute();
+    		}
+        }
+
+        setContentView(R.layout.activity_main);
+
         /* Set the basic attributes of the MapView */
-		mapView = (MapView) findViewById(R.id.map_view);
-		locationOverlay = new MyLocationOverlay(this, mapView);
+        this.mapView = (MapView) findViewById(R.id.map_view);
+        initializeMapView();
+
+        locationOverlay = new MyLocationOverlay(this, mapView);
+        myLocationListener = new MyLocationListener();
+        routeOverlay = state.routeOverlay;
+
+        /* Initialize a handlers here to ensure that they're attached to the UI thread */
+        handler = new Handler();
+        routeHandler = new RouteHandler();
+    }
+
+	private void initializeMapView() {
 		mapView.setBuiltInZoomControls(true);
-		myLocationListener = new MyLocationListener();
-		routeOverlay = state.routeOverlay;
-		
+
 		final MapController mapController = mapView.getController();
 		mapController.setCenter(state.currentPoint);
 		mapController.setZoom(state.zoomLevel);
-		
-		/* Initialize a handlers here to ensure that they're attached to the UI thread */
-		handler = new Handler();
-		routeHandler = new RouteHandler();
-    }
+	}
 
     @Override
     protected void onResume() {
     	super.onResume();
-		/* Register for the Location updates */
-        final LocationManager locationManager = 
-        	(LocationManager) getSystemService(Context.LOCATION_SERVICE);    
-        
-        locationManager.requestLocationUpdates(
-            LocationManager.GPS_PROVIDER, 
-            0, 
-            0, 
-            myLocationListener);   
 
-        locationManager.requestLocationUpdates(
-            LocationManager.NETWORK_PROVIDER, 
-            0, 
-            0, 
-            myLocationListener);
+        MyLog.d(TAG, "onResume @ " + this.getClass().getSimpleName());
+
+		/* Register for the Location updates */
+//        registerLocationListener();
 
         /* Enable the MyLocationOverlay as well */
         locationOverlay.enableMyLocation();
         locationOverlay.runOnFirstFix(onFirstFixRunnable);
 		mapView.getOverlays().add(locationOverlay);
-		if (routeOverlay != null) mapView.getOverlays().add(routeOverlay);
-		
-        /* Post query job */
-		noChangeCounter = 0;
+		if (routeOverlay != null) {
+			mapView.getOverlays().add(routeOverlay);
+		}
+
+		if (state.daoInitializerAsyncTask == null) {
+			/* Post query job */
+			makeFirstQuery();
+		}
+	}
+
+	private void makeFirstQuery() {
+		lastDescriptorChangeTimestamp = System.currentTimeMillis();
 		handler.post(doQueryIfRequired);
 	}
-    
-    @Override
+
+	@Override
     protected void onPause() {
     	super.onPause();
+
+        MyLog.d(TAG, "onPause @ " + this.getClass().getSimpleName());
+
     	/* Unregister for the Location updates */
-    	final LocationManager locationManager = 
-        	(LocationManager) getSystemService(Context.LOCATION_SERVICE);    
+    	final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
     	locationManager.removeUpdates(myLocationListener);
-    	
+
         /* Disable the MyLocationOverlay as well */
     	locationOverlay.disableMyLocation();
-    	
-    	/* Disable the queries */
+
+    	/* Disable querying */
     	handler.removeCallbacks(doQueryIfRequired);
     }
-    
+
+	@Override
+	protected void onDestroy() {
+        MyLog.d(TAG, "onDestroy @ " + this.getClass().getSimpleName());
+
+	    facilityWorker.onDestroy();
+		super.onDestroy();
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+			case DIALOG_INITIALIZE_DAO:
+				final ProgressDialog dialog = new ProgressDialog(this);
+				dialog.setMessage(getString(R.string.activitymain_initializing_provider));
+				return dialog;
+		}
+		return super.onCreateDialog(id);
+	}
+
     @Override
     public Object onRetainNonConfigurationInstance() {
-    	handler.removeCallbacks(doQueryIfRequired);
     	state.currentPoint = mapView.getMapCenter();
     	state.zoomLevel = mapView.getZoomLevel();
     	state.routeOverlay = routeOverlay;
     	return state;
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
     	final MenuInflater menuInflater = getMenuInflater();
     	menuInflater.inflate(R.menu.activity_main_menu, menu);
     	return true;
     }
-    
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
     	final MenuItem trackingItem = menu.findItem(R.id.tracking_menuitem);
     	if (state.isTrackingEnabled) {
     		trackingItem.setTitle(getResources().getString(R.string.activitymain_disabletracking));
     	} else {
-    		trackingItem.setTitle(getResources().getString(R.string.activitymain_enabletracking));    		
+    		trackingItem.setTitle(getResources().getString(R.string.activitymain_enabletracking));
     	}
     	return true;
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
@@ -195,7 +256,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
     			return super.onOptionsItemSelected(item);
     	}
     }
-    
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
@@ -207,140 +268,62 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 				break;
 		}
 	}
-	
+
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
 	}
 
-	private Runnable doQueryIfRequired = new Runnable() {
-		public void run() {
-			/* Save the exact coordinates of the top-left visible vertex of MapView */
-			final GeoPoint currentVisibleGeoPoint = mapView.getMapCenter();
-			final int currentLatitude = currentVisibleGeoPoint.getLatitudeE6();
-			final int currentLongitude = currentVisibleGeoPoint.getLongitudeE6();
+	private void requery() {
+		/* Save the exact coordinates of the top-left visible vertex of MapView */
+		final GeoPoint currentVisibleGeoPoint = mapView.getMapCenter();
+		final int currentLatitude = currentVisibleGeoPoint.getLatitudeE6();
+		final int currentLongitude = currentVisibleGeoPoint.getLongitudeE6();
 
-			if (lastVisibleGeoPoint == null) {
-				noChangeCounter = 0;
-				lastVisibleGeoPoint = currentVisibleGeoPoint;
+		boolean scheduleQuery = false;
+
+		if (lastMapCenterGeoPoint == null) {
+			lastMapCenterGeoPoint = currentVisibleGeoPoint;
+		} else {
+			final int lastLatitude = lastMapCenterGeoPoint.getLatitudeE6();
+			final int lastLongitude = lastMapCenterGeoPoint.getLongitudeE6();
+
+			if (lastLatitude == currentLatitude && lastLongitude == currentLongitude) {
+				if (lastDescriptorChangeTimestamp > TIME_WITHOUT_DESCRIPTOR_CHANGE_TO_QUERY) {
+					scheduleQuery = !queryCompleted;
+				}
 			} else {
-				final int lastLatitude = lastVisibleGeoPoint.getLatitudeE6();
-				final int lastLongitude = lastVisibleGeoPoint.getLongitudeE6();
-				
-				if (lastLatitude == currentLatitude && lastLongitude == currentLongitude) {
-					noChangeCounter++;
-				} else {
-					noChangeCounter = 0;
-					lastVisibleGeoPoint = currentVisibleGeoPoint;
-				}
+				lastDescriptorChangeTimestamp = System.currentTimeMillis();
+				lastMapCenterGeoPoint = currentVisibleGeoPoint;
+				queryCompleted = false;
 			}
-			
-			if (noChangeCounter == 2) {
-				IFacilityProvider provider = IFacilityProviderManager.getInstance(ActivityMain.this);
-				
-				// TODO: Make the distance dependent on the current zooming.
-				final GeoPoint[] boundingGeoPoints = 
+		}
+
+		if (scheduleQuery) {
+			// TODO: Make the distance dependent on the current zoom value.
+			final GeoPoint[] boundingGeoPoints =
 					GeoUtils.boundingCoordinates(
-							currentDistanceInKilometers, currentVisibleGeoPoint);
-				final GeoPoint minGeoPoint = boundingGeoPoints[0];
-				final GeoPoint maxGeoPoint = boundingGeoPoints[1];
-				
-				final double minLatitude = GeoUtils.convertToDegrees(minGeoPoint)[0];
-				final double minLongitude = GeoUtils.convertToDegrees(minGeoPoint)[1];
-				final double maxLatitude = GeoUtils.convertToDegrees(maxGeoPoint)[0];
-				final double maxLongitude = GeoUtils.convertToDegrees(maxGeoPoint)[1];
-				
-				final Location lowerLeftLocation = new Location("");
-				final Location upperRightLocation = new Location("");
-				lowerLeftLocation.setLatitude(minLatitude);
-				lowerLeftLocation.setLongitude(minLongitude);
-				upperRightLocation.setLatitude(maxLatitude);
-				upperRightLocation.setLongitude(maxLongitude);
-				
-				try {
-					provider.getFacilitiesWithinArea(
-							ActivityMain.this, 
-							lowerLeftLocation, upperRightLocation, state.filters);
-				} catch (Exception e) {
-					// It shouldn't happen - even if the query just won't be executed.
-				}
-			}
-			
-			/* Post this job once again after 1000ms */
-			handler.postDelayed(doQueryIfRequired, 1000);
-		}
-	};
+						currentDistanceInKilometers, currentVisibleGeoPoint);
+			final GeoPoint lowerLeft = boundingGeoPoints[0];
+			final GeoPoint upperRight = boundingGeoPoints[1];
 
-	public void onQueryComplete(int token, Cursor cursor,
-			Map<String, Integer> columnMapping) {
-		Log.e(TAG, "Query finished. Returned rows: " + cursor.getCount());
-		if (!cursor.moveToFirst()) {
-			cursor.close();
-			runOnUiThread(new Runnable() {
-				public void run() {
-					final List<Overlay> overlays = mapView.getOverlays();
-					overlays.clear();
-					overlays.add(locationOverlay);
-					Log.d(TAG, "Posting invalidate on MapView");
-					mapView.invalidate();
-				}
-			});
-			return;
-		}
-		
-		final Drawable marker = getResources().getDrawable(R.drawable.marker);
-		final BasicItemizedOverlay itemizedOverlay = 
-			new BasicItemizedOverlay(this, marker, routeHandler);
+			facilityWorker.scheduleQuery(new FacilityQueryExecutor() {
 
-		synchronized (ActivityMain.class) {
-			Log.d(TAG, "Starting going through the results - creating the overlays");
-			final double start = System.currentTimeMillis();
-			do {
-				final String name = cursor.getString(columnMapping.get(Facility.Columns.NAME));
-				final String address = cursor.getString(columnMapping.get(Facility.Columns.ADDRESS));
-				final String phone = cursor.getString(columnMapping.get(Facility.Columns.PHONE));
-				final String email  = cursor.getString(columnMapping.get(Facility.Columns.EMAIL));
-				final double latitude = cursor.getDouble(columnMapping.get(Facility.Columns.LATITUDE));
-				final double longitude = cursor.getDouble(columnMapping.get(Facility.Columns.LONGITUDE));
-				final GeoPoint geoPoint = GeoUtils.convertToGeoPoint(latitude, longitude);
-				
-				final Facility facility = new Facility();
-				facility.setName(name);
-				facility.setAddress(address);
-				facility.setPhone(phone);
-				facility.setEmail(email);
-				facility.setLocation(geoPoint);
-				final FacilityOverlayItem overlayItem = new FacilityOverlayItem(facility, geoPoint);
-				itemizedOverlay.addOverlay(overlayItem);
-			} while (cursor.moveToNext());
-			Log.d(TAG, "Overlays created. It took: " + (System.currentTimeMillis() - start) + " ms");
-			
-			// TODO: Find a less hacky way to avoid performance problem.
-			itemizedOverlay.populateNow();
-			
-			runOnUiThread(new Runnable() {
-				public void run() {
-					final List<Overlay> overlays = mapView.getOverlays();
-					overlays.clear();
-					overlays.add(itemizedOverlay);
-					overlays.add(locationOverlay);
-					if (routeOverlay != null) {
-						overlays.add(routeOverlay);
-					}
-					Log.d(TAG, "Posting invalidate on MapView");
-					mapView.invalidate();
+				public List<Facility> execute() throws Exception {
+					return facilityDao.findNamedWithinArea(lowerLeft, upperRight, state.filters);
 				}
 			});
 		}
-		
-		cursor.close();
+
+		/* Post this job once again after 1000ms */
+		handler.postDelayed(doQueryIfRequired, 1000);
 	}
 
 	private Runnable onFirstFixRunnable = new Runnable() {
-		
+
 		public void run() {
 			runOnUiThread(new Runnable() {
-				
+
 				public void run() {
 					final MapController mapController = mapView.getController();
 					mapController.animateTo(locationOverlay.getMyLocation());
@@ -348,14 +331,31 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			});
 		}
 	};
-	
+
+	private void registerLocationListener() {
+		final LocationManager locationManager =
+	    	(LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+	    locationManager.requestLocationUpdates(
+	        LocationManager.GPS_PROVIDER,
+	        0,
+	        0,
+	        myLocationListener);
+
+	    locationManager.requestLocationUpdates(
+	        LocationManager.NETWORK_PROVIDER,
+	        0,
+	        0,
+	        myLocationListener);
+	}
+
 	private void setFilters(Intent intent) {
 		currentDistanceInKilometers = intent.getIntExtra(
-				ActivityFilter.RESULT_DISTANCE, 
+				ActivityFilter.RESULT_DISTANCE,
 				ActivityFilter.DEFAULT_DISTANCE_IN_KILOMETERS);
 		state.filters = intent.getStringArrayExtra(ActivityFilter.RESULT_FILTER_ARRAY);
-		
-		Log.d(TAG, "Received filters: [ " + currentDistanceInKilometers + " km], " 
+
+		MyLog.d(TAG, "Received filters: [ " + currentDistanceInKilometers + " km], "
 				+ Arrays.toString(state.filters));
 	}
 
@@ -367,34 +367,35 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	}
 
 	private void showAbout() {
-		LayoutInflater inflater = getLayoutInflater(); 
+		LayoutInflater inflater = getLayoutInflater();
 		View layout = inflater.inflate(R.layout.dialog_about, null);
 
 		try {
 			String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
 			String version = String.format(getString(R.string.app_version), versionName);
-			final TextView versionTextView = (TextView) layout.findViewById(R.id.dialogabout_appversion); 
+			final TextView versionTextView = (TextView) layout.findViewById(R.id.dialogabout_appversion);
 			versionTextView.setText(version);
 		} catch (NameNotFoundException e) {
 			// No version found, not critical..
 		}
-		
+
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setView(layout);
 		final AlertDialog dialog = builder.create();
 		dialog.setTitle(getString(R.string.app_name));
 		dialog.show();
 	}
-	
-	private class State {
+
+	private static class State {
 		public GeoPoint currentPoint;
 		public int zoomLevel;
 		public boolean isTrackingEnabled = false;
 		public boolean isGPSEnabled = false;
-	    public String[] filters = null;
-	    public RouteOverlay routeOverlay = null;
-		
-		private State () {
+	    public String[] filters;
+	    public RouteOverlay routeOverlay;
+	    public DAOInitializerAsyncTask daoInitializerAsyncTask;
+
+		private State() {
 			currentPoint = START_GEOPOINT;
 			zoomLevel = START_ZOOM_LEVEL;
 		}
@@ -403,15 +404,15 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 	private class MyLocationListener implements LocationListener {
 
 		public void onLocationChanged(Location location) {
-			Log.d(TAG, "Received the Location update from " + location.getProvider() + ": " +
+			MyLog.d(TAG, "Received the Location update from " + location.getProvider() + ": " +
 					location.getLatitude() + "; " + location.getLongitude());
 			final GeoPoint currentPoint = GeoUtils.convertToGeoPoint(
-					location.getLatitude(), location.getLongitude()); 
+					location.getLatitude(), location.getLongitude());
 			routeHandler.setCurrentLocation(currentPoint);
-			
+
 			if (mapView != null && state.isTrackingEnabled) {
 				final String provider = location.getProvider();
-				
+
 				if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
 					// Use the NETWORK_PROVIDER only if GPS is not enabled.
 					if (state.isGPSEnabled) return;
@@ -419,7 +420,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 					state.isGPSEnabled = true;
 				}
 
-				state.currentPoint = currentPoint; 
+				state.currentPoint = currentPoint;
 
 				runOnUiThread(new Runnable() {
 					public void run() {
@@ -431,12 +432,12 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		}
 
 		public void onProviderDisabled(String provider) {
-			if (LocationManager.GPS_PROVIDER.equals(provider)) 
+			if (LocationManager.GPS_PROVIDER.equals(provider))
 				state.isGPSEnabled = false;
 		}
 
 		public void onProviderEnabled(String provider) {
-			if (LocationManager.GPS_PROVIDER.equals(provider)) 
+			if (LocationManager.GPS_PROVIDER.equals(provider))
 				state.isGPSEnabled = true;
 		}
 
@@ -444,11 +445,11 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 			// No need to implement this here.
 		}
 	}
-	
+
 	public class RouteHandler extends Handler {
 		private Route route;
 		private GeoPoint currentLocation;
-		
+
 		public void setRoute(Route route) {
 			this.route = route;
 		}
@@ -456,7 +457,7 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
 		public void setCurrentLocation(GeoPoint location) {
 			currentLocation = location;
 		}
-		
+
 		public GeoPoint getCurrentLocation() {
 			return currentLocation;
 		}
@@ -470,6 +471,54 @@ public class ActivityMain extends MapActivity implements AsyncQueryListener {
             mapView.invalidate();
 		}
 
-}
+	}
+
+	public void onDatabaseIniitialized(boolean success) {
+	    state.daoInitializerAsyncTask = null;
+		if (success) {
+			dismissDialog(DIALOG_INITIALIZE_DAO);
+			makeFirstQuery();
+		} else {
+			// Not good, we encountered a real FATAL error..
+			// TODO: Push information to the user.
+		}
+	}
+
+	public void onAsyncFacilityQueryCompleted(List<Facility> result) {
+		MyLog.e(TAG, "Query finished. Returned rows: " + result.size());
+		queryCompleted = true;
+
+		if (result.size() == 0) {
+			MyLog.d(TAG, "Removing overlays from the MapView");
+			final List<Overlay> overlays = mapView.getOverlays();
+			overlays.clear();
+			overlays.add(locationOverlay);
+		} else {
+			final Drawable marker = getResources().getDrawable(R.drawable.marker);
+			final BasicItemizedOverlay itemizedOverlay = new BasicItemizedOverlay(this, marker, routeHandler);
+
+			MyLog.d(TAG, "Starting going through the results - creating the overlays");
+
+			final double start = System.currentTimeMillis();
+			for (int i=0; i<result.size(); i++) {
+				final FacilityOverlayItem overlayItem = new FacilityOverlayItem(result.get(i));
+				itemizedOverlay.addOverlay(overlayItem);
+			}
+			MyLog.d(TAG, "Overlays created. It took: " + (System.currentTimeMillis() - start) + " ms");
+
+			itemizedOverlay.onDataCollected();
+
+			final List<Overlay> overlays = mapView.getOverlays();
+			overlays.clear();
+			overlays.add(itemizedOverlay);
+			overlays.add(locationOverlay);
+			if (routeOverlay != null) {
+				overlays.add(routeOverlay);
+			}
+		}
+
+		MyLog.d(TAG, "Posting invalidate on MapView");
+		mapView.invalidate();
+	}
 
 }

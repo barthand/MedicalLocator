@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import put.medicallocator.R;
 import put.medicallocator.utils.FilterManager;
-import put.medicallocator.utils.Log;
+import put.medicallocator.utils.MyLog;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -58,7 +58,7 @@ public class ActivityFilter extends ListActivity {
         /* Set the ListView related attributes */
         setListAdapter(new ArrayAdapter<String>(
         		this, android.R.layout.simple_list_item_multiple_choice, 
-        		FilterManager.availableFilters));
+        		FilterManager.AVAILABLE_FILTERS));
         getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         checkInputFilters();   
         
@@ -120,11 +120,11 @@ public class ActivityFilter extends ListActivity {
     	ArrayList<String> filters = new ArrayList<String>();
     	for (int i=0; i<listView.getCount(); i++) {
     		if (listView.isItemChecked(i)) {
-    			filters.add(FilterManager.availableFilters[i]);
+    			filters.add(FilterManager.AVAILABLE_FILTERS[i]);
     		}
     	}
     	final String[] resultArray = filters.toArray(new String[filters.size()]);
-    	Log.d(TAG, "Following filters were chosen: " + Arrays.toString(resultArray));
+    	MyLog.d(TAG, "Following filters were chosen: " + Arrays.toString(resultArray));
     	
     	intent.putExtra(RESULT_FILTER_ARRAY, resultArray);
     	intent.putExtra(RESULT_DISTANCE, currentDistance);
