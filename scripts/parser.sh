@@ -6,7 +6,7 @@
 #
 
 if [ -z $1 ]; then
-	echo "Please provide input file."
+	echo "Usage: $0 <input_file>"
 	exit 1
 fi
 

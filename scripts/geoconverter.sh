@@ -23,19 +23,20 @@ while read line; do
 	wget -q "http://maps.googleapis.com/maps/api/geocode/json?address=$address&sensor=false" -O $GEOCODER_API_TEMP
 
 	# Parse the returned result from Google.
-	geolocation=`cat $GEOCODER_API_TEMP | grep "location\":" -A2 | awk -F":" '
-	function cleanup(value)
-	{
-		gsub(/^[ \t]+/, "", value);
-		gsub(/[ \t,]+$/, "", value);
-		return value;
-	}
-	{
-		if ($1 ~ "lat") { lat=$2 } 
-		else if ($1 ~ "lng") { lng=$2 } 
-	} END { 
-		print cleanup(lat) "|" cleanup(lng) 
-	}'`
+	geolocation=`cat $GEOCODER_API_TEMP | perl -e '
+use JSON;
+
+# from file content
+local $/;
+my $json_text   = <STDIN>;
+my $perl_scalar = decode_json( $json_text );
+
+my $location = $perl_scalar->{"results"}[0]->{"geometry"}->{"location"};
+my $lat = $location->{"lat"};
+my $lng = $location->{"lng"};
+
+print "$lat|$lng";
+	'`
 
 	# Print output line.
 	echo "$line|$geolocation"
