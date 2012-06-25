@@ -15,7 +15,7 @@ import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListe
 import put.medicallocator.ui.async.DAOInitializerAsyncTask;
 import put.medicallocator.ui.async.DAOInitializerAsyncTask.DAOInitializerListener;
 import put.medicallocator.ui.overlay.FacilitiesOverlay;
-import put.medicallocator.ui.overlay.FaciltiesOverlayFactory;
+import put.medicallocator.ui.overlay.FaciltiesOverlayBuilder;
 import put.medicallocator.ui.overlay.RouteOverlay;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
 import put.medicallocator.ui.utils.FacilityDialogUtils;
@@ -505,7 +505,7 @@ public class ActivityMain extends MapActivity implements DAOInitializerListener,
             overlays.add(locationOverlay);
         } else {
             final Drawable marker = getResources().getDrawable(R.drawable.marker);
-            final FacilitiesOverlay overlay = FaciltiesOverlayFactory.createOverlay(result, marker, this);
+            final FacilitiesOverlay overlay = new FaciltiesOverlayBuilder(result, marker).buildOverlay(this);
 
             final List<Overlay> overlays = mapView.getOverlays();
             overlays.clear();
