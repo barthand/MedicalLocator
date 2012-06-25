@@ -15,7 +15,10 @@ import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListe
 import put.medicallocator.ui.async.DAOInitializerAsyncTask;
 import put.medicallocator.ui.async.DAOInitializerAsyncTask.DAOInitializerListener;
 import put.medicallocator.ui.overlay.FacilitiesOverlay;
+import put.medicallocator.ui.overlay.FaciltiesOverlayFactory;
 import put.medicallocator.ui.overlay.RouteOverlay;
+import put.medicallocator.ui.overlay.utils.FacilityTapListener;
+import put.medicallocator.ui.utils.FacilityDialogUtils;
 import put.medicallocator.utils.GeoUtils;
 import put.medicallocator.utils.MyLog;
 import android.app.Activity;
@@ -47,7 +50,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
 
-public class ActivityMain extends MapActivity implements DAOInitializerListener, FacilityQueryListener {
+public class ActivityMain extends MapActivity implements DAOInitializerListener, FacilityQueryListener, FacilityTapListener {
 
 	private static final String TAG = ActivityMain.class.getName();
 
@@ -256,7 +259,15 @@ public class ActivityMain extends MapActivity implements DAOInitializerListener,
     	}
     }
 
-	@Override
+	public void onFacilityTap(Facility facility) {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        final FacilityDialogUtils dialogUtils = new FacilityDialogUtils(this, facility, inflater);
+        final AlertDialog dialog = dialogUtils.createFacilityDialog(routeHandler);
+        dialog.show();
+    }
+
+    @Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 			case ActivityFilter.FILTER_REQUEST_CODE:
@@ -494,8 +505,7 @@ public class ActivityMain extends MapActivity implements DAOInitializerListener,
             overlays.add(locationOverlay);
         } else {
             final Drawable marker = getResources().getDrawable(R.drawable.marker);
-            final FacilitiesOverlay overlay =
-                    new FacilitiesOverlay(this, routeHandler, result, marker);
+            final FacilitiesOverlay overlay = FaciltiesOverlayFactory.createOverlay(result, marker, this);
 
             final List<Overlay> overlays = mapView.getOverlays();
             overlays.clear();

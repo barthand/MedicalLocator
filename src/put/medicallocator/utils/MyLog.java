@@ -5,6 +5,9 @@ package put.medicallocator.utils;
  */
 public class MyLog {
 
+    /* TODO: Move to the properties file, so this value may change even at the runtime. */
+    public static final boolean ASSERT_ENABLED = true;
+
 	/**
 	 * In the production release, REMEMBER to change this value.
 	 * TODO: Alternatively:
