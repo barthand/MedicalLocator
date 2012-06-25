@@ -154,7 +154,7 @@ public class ActivityMain extends MapActivity implements DAOInitializerListener,
         MyLog.d(TAG, "onResume @ " + this.getClass().getSimpleName());
 
 		/* Register for the Location updates */
-//        registerLocationListener();
+        registerLocationListener();
 
         /* Enable the MyLocationOverlay as well */
         locationOverlay.enableMyLocation();
