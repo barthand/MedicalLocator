@@ -14,8 +14,7 @@ import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryExecu
 import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListener;
 import put.medicallocator.ui.async.DAOInitializerAsyncTask;
 import put.medicallocator.ui.async.DAOInitializerAsyncTask.DAOInitializerListener;
-import put.medicallocator.ui.overlay.BasicItemizedOverlay;
-import put.medicallocator.ui.overlay.FacilityOverlayItem;
+import put.medicallocator.ui.overlay.FacilitiesOverlay;
 import put.medicallocator.ui.overlay.RouteOverlay;
 import put.medicallocator.utils.GeoUtils;
 import put.medicallocator.utils.MyLog;
@@ -484,41 +483,32 @@ public class ActivityMain extends MapActivity implements DAOInitializerListener,
 		}
 	}
 
-	public void onAsyncFacilityQueryCompleted(List<Facility> result) {
-		MyLog.e(TAG, "Query finished. Returned rows: " + result.size());
-		queryCompleted = true;
+    public void onAsyncFacilityQueryCompleted(List<Facility> result) {
+        MyLog.e(TAG, "Query finished. Returned rows: " + result.size());
+        queryCompleted = true;
 
-		if (result.size() == 0) {
-			MyLog.d(TAG, "Removing overlays from the MapView");
-			final List<Overlay> overlays = mapView.getOverlays();
-			overlays.clear();
-			overlays.add(locationOverlay);
-		} else {
-			final Drawable marker = getResources().getDrawable(R.drawable.marker);
-			final BasicItemizedOverlay itemizedOverlay = new BasicItemizedOverlay(this, marker, routeHandler);
+        if (result.size() == 0) {
+            MyLog.d(TAG, "Removing overlays from the MapView");
+            final List<Overlay> overlays = mapView.getOverlays();
+            overlays.clear();
+            overlays.add(locationOverlay);
+        } else {
+            final Drawable marker = getResources().getDrawable(R.drawable.marker);
+            final FacilitiesOverlay overlay =
+                    new FacilitiesOverlay(this, routeHandler, result, marker);
 
-			MyLog.d(TAG, "Starting going through the results - creating the overlays");
+            final List<Overlay> overlays = mapView.getOverlays();
+            overlays.clear();
 
-			final double start = System.currentTimeMillis();
-			for (int i=0; i<result.size(); i++) {
-				final FacilityOverlayItem overlayItem = new FacilityOverlayItem(result.get(i));
-				itemizedOverlay.addOverlay(overlayItem);
-			}
-			MyLog.d(TAG, "Overlays created. It took: " + (System.currentTimeMillis() - start) + " ms");
+            overlays.add(overlay);
+            overlays.add(locationOverlay);
+            if (routeOverlay != null) {
+                overlays.add(routeOverlay);
+            }
+        }
 
-			itemizedOverlay.onDataCollected();
-
-			final List<Overlay> overlays = mapView.getOverlays();
-			overlays.clear();
-			overlays.add(itemizedOverlay);
-			overlays.add(locationOverlay);
-			if (routeOverlay != null) {
-				overlays.add(routeOverlay);
-			}
-		}
-
-		MyLog.d(TAG, "Posting invalidate on MapView");
-		mapView.invalidate();
-	}
+        MyLog.d(TAG, "Posting invalidate on MapView");
+        mapView.invalidate();
+    }
 
 }
