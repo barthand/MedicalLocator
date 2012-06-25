@@ -60,7 +60,8 @@ class KMLHandler extends DefaultHandler {
 		route = new Route();
 	}
 
-	public void startElement(String uri, String localName, String name,
+	@Override
+    public void startElement(String uri, String localName, String name,
 			Attributes attributes) throws SAXException {
 		currentElement.push(localName);
 		if (localName.equalsIgnoreCase("Placemark")) {
@@ -73,13 +74,15 @@ class KMLHandler extends DefaultHandler {
 		string = new String();
 	}
 
-	public void characters(char[] ch, int start, int length)
+	@Override
+    public void characters(char[] ch, int start, int length)
 			throws SAXException {
 		String chars = new String(ch, start, length).trim();
 		string = string.concat(chars);
 	}
 
-	public void endElement(String uri, String localName, String name)
+	@Override
+    public void endElement(String uri, String localName, String name)
 			throws SAXException {
 		if (string.length() > 0) {
 			if (localName.equalsIgnoreCase("name")) {
