@@ -1,4 +1,4 @@
-package put.medicallocator.io;
+package put.medicallocator.io.helper;
 
 import put.medicallocator.io.sqlite.DatabaseFacilityDAOHelper;
 import android.content.Context;

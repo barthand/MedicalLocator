@@ -3,7 +3,7 @@ package put.medicallocator.ui.overlay;
 import java.util.List;
 
 import junit.framework.Assert;
-import put.medicallocator.io.Facility;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.ui.overlay.utils.FacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
 import put.medicallocator.utils.MyLog;
@@ -18,6 +18,8 @@ import com.google.android.maps.Projection;
 
 public class FacilitiesOverlay extends Overlay {
 
+    private static final String TAG = FacilitiesOverlay.class.getSimpleName();
+    
     private final List<Facility> source;
     private final Drawable drawable;
     private final FacilityTapListener tapListener;
@@ -55,7 +57,12 @@ public class FacilitiesOverlay extends Overlay {
 
     @Override
     public boolean onTap(GeoPoint p, MapView mapView) {
+        final long start = System.currentTimeMillis();
+        
         final Facility facility = lookupStrategy.findNearestFacility(p, mapView.getProjection());
+        
+        final long end = System.currentTimeMillis();
+        MyLog.d(TAG, "Finding nearest facility took " + (end - start) + "ms");
 
         if (facility != null) {
             if (tapListener != null) {

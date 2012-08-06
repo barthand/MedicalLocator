@@ -2,7 +2,7 @@ package put.medicallocator.ui.overlay.utils;
 
 import java.util.List;
 
-import put.medicallocator.io.Facility;
+import put.medicallocator.io.model.Facility;
 import android.graphics.Point;
 
 import com.google.android.maps.GeoPoint;

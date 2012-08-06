@@ -1,6 +1,6 @@
 package put.medicallocator.ui.overlay.utils;
 
-import put.medicallocator.io.Facility;
+import put.medicallocator.io.model.Facility;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Projection;

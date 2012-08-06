@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import put.medicallocator.R;
-import put.medicallocator.io.Facility;
 import put.medicallocator.io.IFacilityDAO;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.sqlite.DatabaseFacilityDAO;
 import put.medicallocator.ui.async.AsyncFacilityWorkerHandler;
 import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryExecutor;

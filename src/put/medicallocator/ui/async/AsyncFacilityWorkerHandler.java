@@ -3,7 +3,7 @@ package put.medicallocator.ui.async;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-import put.medicallocator.io.Facility;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.utils.MyLog;
 import android.os.Handler;
 import android.os.HandlerThread;

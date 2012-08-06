@@ -2,7 +2,7 @@ package put.medicallocator.ui.overlay;
 
 import java.util.List;
 
-import put.medicallocator.io.Facility;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.ui.overlay.utils.BasicFacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
@@ -15,9 +15,13 @@ public class FaciltiesOverlayBuilder {
     private FacilityLookupStrategy lookupStrategy;
 
     public FaciltiesOverlayBuilder(List<Facility> source, Drawable drawable) {
+        this(source, drawable, new BasicFacilityLookupStrategy(source)); 
+    }
+    
+    public FaciltiesOverlayBuilder(List<Facility> source, Drawable drawable, FacilityLookupStrategy strategy) {
         this.source = source;
         this.drawable = drawable;
-        this.lookupStrategy = new BasicFacilityLookupStrategy(source);
+        this.lookupStrategy = strategy;
     }
 
     public FacilitiesOverlay buildOverlay(FacilityTapListener listener) {
@@ -31,7 +35,7 @@ public class FaciltiesOverlayBuilder {
     public void setDrawable(Drawable drawable) {
         this.drawable = drawable;
     }
-
+    
     public FacilityLookupStrategy getLookupStrategy() {
         return lookupStrategy;
     }

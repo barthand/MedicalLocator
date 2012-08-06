@@ -7,7 +7,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import put.medicallocator.R;
-import put.medicallocator.io.Facility;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.route.RoadProvider;
 import put.medicallocator.ui.ActivityMain.RouteHandler;
 import put.medicallocator.utils.MyLog;

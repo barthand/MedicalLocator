@@ -2,6 +2,8 @@ package put.medicallocator.io;
 
 import java.util.List;
 
+import put.medicallocator.io.model.Facility;
+
 
 import com.google.android.maps.GeoPoint;
 

@@ -1,6 +1,6 @@
 package put.medicallocator.ui.async;
 
-import put.medicallocator.io.FacilityDAOHelper;
+import put.medicallocator.io.helper.FacilityDAOHelper;
 import android.os.AsyncTask;
 
 public class DAOInitializerAsyncTask extends AsyncTask<Void, Void, Boolean> {

@@ -1,4 +1,4 @@
-package put.medicallocator.io;
+package put.medicallocator.io.model;
 
 import com.google.android.maps.GeoPoint;
 

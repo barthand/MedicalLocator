@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import put.medicallocator.io.DAOException;
-import put.medicallocator.io.Facility;
 import put.medicallocator.io.IFacilityDAO;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.sqlite.DatabaseContract.FacilityColumns;
 import put.medicallocator.io.sqlite.DatabaseContract.Queries;
 import put.medicallocator.io.sqlite.DatabaseContract.Queries.FacilityQuery;
@@ -138,7 +138,7 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 	/**
 	 * Internal helper class to manage database connections.
 	 */
-	protected static class DatabaseOpenHelper extends SQLiteOpenHelper {
+	static class DatabaseOpenHelper extends SQLiteOpenHelper {
 
 		public DatabaseOpenHelper(Context context) {
 			super(context, DatabaseContract.DATABASE_NAME, null, DatabaseContract.DATABASE_VERSION);

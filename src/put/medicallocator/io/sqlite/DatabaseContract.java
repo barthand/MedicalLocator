@@ -1,6 +1,6 @@
 package put.medicallocator.io.sqlite;
 
-import put.medicallocator.io.Facility;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.utils.GeoUtils;
 import android.database.Cursor;
 import android.provider.BaseColumns;
