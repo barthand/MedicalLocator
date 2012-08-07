@@ -3,9 +3,9 @@ package put.medicallocator.ui.overlay;
 import java.util.List;
 
 import put.medicallocator.io.model.Facility;
-import put.medicallocator.ui.overlay.utils.BasicFacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
+import put.medicallocator.ui.overlay.utils.HitTestFacilityLookupStrategy;
 import android.graphics.drawable.Drawable;
 
 public class FaciltiesOverlayBuilder {
@@ -15,7 +15,7 @@ public class FaciltiesOverlayBuilder {
     private FacilityLookupStrategy lookupStrategy;
 
     public FaciltiesOverlayBuilder(List<Facility> source, Drawable drawable) {
-        this(source, drawable, new BasicFacilityLookupStrategy(source)); 
+        this(source, drawable, new HitTestFacilityLookupStrategy(source, drawable)); 
     }
     
     public FaciltiesOverlayBuilder(List<Facility> source, Drawable drawable, FacilityLookupStrategy strategy) {
