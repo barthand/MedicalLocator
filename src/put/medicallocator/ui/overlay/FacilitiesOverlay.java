@@ -25,6 +25,9 @@ public class FacilitiesOverlay extends Overlay {
     private final FacilityTapListener tapListener;
     private final FacilityLookupStrategy lookupStrategy;
 
+    private final int drawableHalfWidth;
+    private final int drawableHalfHeight;
+    
     FacilitiesOverlay(List<Facility> source, Drawable drawable,
             FacilityLookupStrategy lookupStrategy, FacilityTapListener listener) {
         this.source = source;
@@ -32,6 +35,9 @@ public class FacilitiesOverlay extends Overlay {
         this.tapListener = listener;
         this.lookupStrategy = lookupStrategy;
 
+        this.drawableHalfWidth = drawable.getIntrinsicWidth() / 2;
+        this.drawableHalfHeight = drawable.getIntrinsicHeight() / 2;
+        
         if (MyLog.ASSERT_ENABLED) {
             Assert.assertNotNull(lookupStrategy);
         }
@@ -49,8 +55,9 @@ public class FacilitiesOverlay extends Overlay {
 
         for (Facility facility : source) {
             projection.toPixels(facility.getGeoPoint(), point);
-            drawable.setBounds(point.x, point.y,
-                    point.x + drawable.getIntrinsicWidth(), point.y + drawable.getIntrinsicHeight());
+            
+            drawable.setBounds(point.x - drawableHalfWidth, point.y - drawableHalfHeight,
+                    point.x + drawableHalfWidth, point.y + drawableHalfHeight);
             drawable.draw(canvas);
         }
     }
