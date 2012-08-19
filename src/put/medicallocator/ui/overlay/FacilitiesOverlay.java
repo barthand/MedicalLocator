@@ -18,6 +18,19 @@ import com.google.android.maps.Projection;
 
 public class FacilitiesOverlay extends Overlay {
 
+    /* TODO (just some loose ideas):
+     * + draw all markers within bounding box specified by current MapView
+     *   * for lower zooms, look below.
+     * + grouping overlays in lower zooms to reduce overhead with each individual drawing:
+     *   * deliver number of facilities around on the marker?
+     *   * make the dialog for such grouped markers describing count, facilities types, etc.
+     *   * for each zoom level, cache the markers being drawn (to speed up queries), 
+     *   * but still consider memory constraints,
+     * + consider drawing all markers on the MapView, using the solution above,
+     *   * query all markers on startup and keep them in the memory,
+     *   * if too much memory needed, group more markers in one go,
+     */
+    
     private static final String TAG = FacilitiesOverlay.class.getSimpleName();
     
     private final List<Facility> source;
