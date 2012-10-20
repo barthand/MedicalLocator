@@ -27,16 +27,18 @@ CREATE TABLE facility (
 	address TEXT,
 	phone TEXT,
 	email TEXT,
+	www TEXT,
+	type INTEGER NOT NULL,
 	latitude REAL,
 	longitude REAL);
 			
 EOF
 
-# Now let's get the real data.
+# Now let's put the real data.
 awk -F'|' '
 {
-	if (length($5) == 0) lat="NULL"; else lat=$5;
-	if (length($6) == 0) lng="NULL"; else lng=$6;
+	if (length($7) == 0) lat="NULL"; else lat=$7;
+	if (length($8) == 0) lng="NULL"; else lng=$8;
 
-	print "INSERT INTO facility (name, address, phone, email, latitude, longitude) VALUES (\047"$1"\047, \047"$2"\047, \047"$3"\047, \047"$4"\047, "lat", "lng");"
+	print "INSERT INTO facility (name, address, phone, email, www, type, latitude, longitude) VALUES (\047" $1 "\047, \047" $2 "\047, \047" $3 "\047, \047" $4 "\047, \047" $5 "\047, " $6 ", " lat ", " lng ");"
 }' $input_file
