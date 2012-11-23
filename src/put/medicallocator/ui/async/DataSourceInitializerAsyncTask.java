@@ -3,17 +3,17 @@ package put.medicallocator.ui.async;
 import put.medicallocator.io.helper.FacilityDAOHelper;
 import android.os.AsyncTask;
 
-public class DAOInitializerAsyncTask extends AsyncTask<Void, Void, Boolean> {
+public class DataSourceInitializerAsyncTask extends AsyncTask<Void, Void, Boolean> {
 
 	private final FacilityDAOHelper helper;
-	private DAOInitializerListener listener;
+	private DataSourceInitializerListener listener;
 
-	public DAOInitializerAsyncTask(FacilityDAOHelper helper, DAOInitializerListener listener) {
+	public DataSourceInitializerAsyncTask(FacilityDAOHelper helper, DataSourceInitializerListener listener) {
 		this.helper = helper;
 		this.listener = listener;
 	}
 
-	public void setListener(DAOInitializerListener listener) {
+	public void setListener(DataSourceInitializerListener listener) {
 		synchronized (this) {
 			this.listener = listener;
 		}
@@ -27,11 +27,11 @@ public class DAOInitializerAsyncTask extends AsyncTask<Void, Void, Boolean> {
 	@Override
 	protected void onPostExecute(Boolean result) {
 		synchronized (this) {
-			listener.onDatabaseIniitialized(result);
+			listener.onDatabaseInitialized(result);
 		}
 	}
 
-	public interface DAOInitializerListener {
-		void onDatabaseIniitialized(boolean success);
+	public interface DataSourceInitializerListener {
+		void onDatabaseInitialized(boolean success);
 	}
 }

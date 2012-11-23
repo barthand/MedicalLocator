@@ -34,23 +34,16 @@ public class FacilitiesOverlay extends Overlay {
     private static final String TAG = FacilitiesOverlay.class.getSimpleName();
     
     private final List<Facility> source;
-    private final Drawable drawable;
+    private final DrawableCache drawableCache;
     private final FacilityTapListener tapListener;
     private final FacilityLookupStrategy lookupStrategy;
-
-    private final int drawableHalfWidth;
-    private final int drawableHalfHeight;
     
-    FacilitiesOverlay(List<Facility> source, Drawable drawable,
-            FacilityLookupStrategy lookupStrategy, FacilityTapListener listener) {
+    FacilitiesOverlay(List<Facility> source, DrawableCache drawableCache, FacilityLookupStrategy lookupStrategy, FacilityTapListener listener) {
         this.source = source;
-        this.drawable = drawable;
+        this.drawableCache = drawableCache;
         this.tapListener = listener;
         this.lookupStrategy = lookupStrategy;
 
-        this.drawableHalfWidth = drawable.getIntrinsicWidth() / 2;
-        this.drawableHalfHeight = drawable.getIntrinsicHeight() / 2;
-        
         if (MyLog.ASSERT_ENABLED) {
             Assert.assertNotNull(lookupStrategy);
         }
@@ -67,12 +60,15 @@ public class FacilitiesOverlay extends Overlay {
         final Point point = new Point();
 
         for (Facility facility : source) {
-            projection.toPixels(facility.getGeoPoint(), point);
+            projection.toPixels(facility.getLocation(), point);
             
-            drawable.setBounds(point.x - drawableHalfWidth, point.y - drawableHalfHeight,
-                    point.x + drawableHalfWidth, point.y + drawableHalfHeight);
+            final DrawableContext drawableContext = drawableCache.get(facility.getFacilityType());
+            final Drawable drawable = drawableContext.drawable;
+            drawable.setBounds(point.x - drawableContext.halfWidth, point.y - drawableContext.halfHeight,
+                    point.x + drawableContext.halfWidth, point.y + drawableContext.halfHeight);
             drawable.draw(canvas);
         }
+        
     }
 
     @Override

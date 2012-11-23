@@ -9,7 +9,7 @@
         android:layout_height="fill_parent"
         android:clickable="true"
         android:enabled="true" 
-        android:apiKey="pUt_YoUR_map_aPI_KeY_HeRE" />
+        android:apiKey="pUt_YoUR_map_aPI_KeY_HeRE"/>
 
     <LinearLayout 
         android:gravity="center_vertical|center_horizontal"
@@ -76,22 +76,13 @@
 		                android:src="@drawable/ic_menu_close_clear_cancel" />
 		        </LinearLayout>
 	    
-		    	<ScrollView 
-		            android:fillViewport="false"
-		            android:layout_width="fill_parent"
-		            android:layout_height="wrap_content"
-		            android:layout_margin="5dp"
-		            android:id="@+id/drawer_scrollview">
-		
-		            <LinearLayout
-		                android:id="@+id/drawer_filters_viewgroup"
-		                android:layout_width="fill_parent"
-		                android:layout_height="wrap_content"
-		                android:orientation="vertical"
-		                android:background="@drawable/drawer_types_background"/>
-		            
-		        </ScrollView>
-		    		    	    	    
+		  		<GridView 
+		  		    android:id="@+id/typesGridView"
+		  		    android:background="@drawable/drawer_types_background"
+		  		    android:layout_width="wrap_content"
+		  		    android:layout_height="wrap_content"
+		  		    android:numColumns="2"
+		  		    android:horizontalSpacing="10dp"/>
 	    	</LinearLayout>	    
 	        		        
 	        <LinearLayout
@@ -106,7 +97,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/activitymain_enabletracking"
-                    style="@style/CheckBoxStyle"/>
+                    style="@style/CheckBoxStyle" />
 		        		        		        		        		        		        
   	            <LinearLayout
 		            android:layout_width="fill_parent"

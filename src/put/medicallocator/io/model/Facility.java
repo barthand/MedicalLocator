@@ -9,8 +9,10 @@ public class Facility {
 	private String address;
 	private String phone;
 	private String email;
+	private String homepage;
 	private GeoPoint location;
-
+	private FacilityType facilityType;
+	
 	public String getId() {
 		return id;
 	}
@@ -51,12 +53,28 @@ public class Facility {
 		this.email = email;
 	}
 
-	public GeoPoint getGeoPoint() {
+    public String getHomepage() {
+        return homepage;
+    }
+
+    public void setHomepage(String homepage) {
+        this.homepage = homepage;
+    }
+
+    public GeoPoint getLocation() {
 		return location;
 	}
 
-	public void setGeoPoint(GeoPoint location) {
+	public void setLocation(GeoPoint location) {
 		this.location = location;
 	}
 
+    public FacilityType getFacilityType() {
+        return facilityType;
+    }
+
+    public void setFacilityType(FacilityType facilityType) {
+        this.facilityType = facilityType;
+    }
+	
 }

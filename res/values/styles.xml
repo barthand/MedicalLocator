@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Base application theme is the default theme. -->
-    <style name="Theme" parent="android:Theme"></style>
-
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Variation on the Light theme that turns off the title -->
     <style name="Theme.MedicalLocator" parent="android:style/Theme.Light">
         <item name="android:windowNoTitle">true</item>
@@ -30,5 +27,9 @@
         <item name="android:paddingTop">8dip</item>
         <item name="android:paddingBottom">8dip</item>
     </style>
-
+    
+    <style name="CheckBoxStyle">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+    
 </resources>

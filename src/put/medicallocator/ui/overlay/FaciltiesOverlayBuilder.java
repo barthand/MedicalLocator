@@ -6,42 +6,23 @@ import put.medicallocator.io.model.Facility;
 import put.medicallocator.ui.overlay.utils.FacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
 import put.medicallocator.ui.overlay.utils.HitTestFacilityLookupStrategy;
-import android.graphics.drawable.Drawable;
+import android.content.Context;
 
 public class FaciltiesOverlayBuilder {
 
-    private final List<Facility> source;
-    private Drawable drawable;
-    private FacilityLookupStrategy lookupStrategy;
+    private final DrawableCache drawableCache; 
 
-    public FaciltiesOverlayBuilder(List<Facility> source, Drawable drawable) {
-        this(source, drawable, new HitTestFacilityLookupStrategy(source, drawable)); 
+    public FaciltiesOverlayBuilder(Context context) {
+        this.drawableCache = new DrawableCache(context);
     }
-    
-    public FaciltiesOverlayBuilder(List<Facility> source, Drawable drawable, FacilityLookupStrategy strategy) {
-        this.source = source;
-        this.drawable = drawable;
-        this.lookupStrategy = strategy;
+        
+    public FacilitiesOverlay buildOverlay(List<Facility> source, FacilityTapListener listener) {
+        final FacilityLookupStrategy lookupStrategy = new HitTestFacilityLookupStrategy(source, drawableCache);
+        return new FacilitiesOverlay(source, drawableCache, lookupStrategy, listener);
     }
 
-    public FacilitiesOverlay buildOverlay(FacilityTapListener listener) {
-        return new FacilitiesOverlay(source, drawable, lookupStrategy, listener);
-    }
-
-    public Drawable getDrawable() {
-        return drawable;
-    }
-
-    public void setDrawable(Drawable drawable) {
-        this.drawable = drawable;
-    }
-    
-    public FacilityLookupStrategy getLookupStrategy() {
-        return lookupStrategy;
-    }
-
-    public void setLookupStrategy(FacilityLookupStrategy lookupStrategy) {
-        this.lookupStrategy = lookupStrategy;
+    public FacilitiesOverlay buildOverlay(List<Facility> source, FacilityTapListener listener, FacilityLookupStrategy lookupStrategy) {
+        return new FacilitiesOverlay(source, drawableCache, lookupStrategy, listener);
     }
 
 }

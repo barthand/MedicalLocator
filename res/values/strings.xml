@@ -3,14 +3,9 @@
     <string name="app_name">Medical Locator</string>
     <string name="app_version">Version: %1$s</string>
     <string name="activitymain_initializing_provider">Initializing Data Provider. Please wait a moment..</string>
-    <string name="activitymain_filter">Filter</string>
     <string name="activitymain_search">Search</string>
-    <string name="activitymain_enabletracking">Enable tracking</string>
-    <string name="activitymain_disabletracking">Disable tracking</string>
+    <string name="activitymain_enabletracking">Enable position tracking</string>
     <string name="activitymain_about">About</string>
-    <string name="activityfilter">Filters</string>
-    <string name="activityfilter_distance">Distance within which we seek for facilities:</string>
-    <string name="activityfilter_resettodefaults">Reset to defaults</string>
     <string name="activitysearch_loading">Loading the results..</string>
     <string name="activitysearch_returnedrows">Results found for \'%1$s\': %2$d</string>
     <string name="activitysearch_noresults">No results found for \'%1$s\'</string>
@@ -22,5 +17,16 @@
     <string name="dialogfacilitybubble_route">Find the route</string>
     <string name="dialogfacilitybubble_nointernetroute">Error during downloading route. Is the internet connection available?</string>
     <string name="dialogabout_about">MedicalLocator is a map-based application presenting the medical facilities in Poland (at least currently). The idea was to collect the public-available data about the medical facilities, present it in the user-friendly form to the Android users and allow them use this data.\n\nEnjoy!</string>
-    <string name="search_hint">What are you looking for?</string>
+    <string name="search_hint">Search on map</string>
+    
+    <string name="activitymain_loading">Loading..</string>
+    
+    <string name="facilitytype_centre">Centre</string>
+    <string name="facilitytype_dentist">Dentist</string>
+    <string name="facilitytype_eye_doctor">Eye doctor</string>
+    <string name="facilitytype_gynecologist">Gynecologist</string>
+    <string name="facilitytype_doctor">Doctor</string>
+    <string name="facilitytype_hospital">Hospital</string>
+    <string name="facilitytype_ambulatory">Ambulatory</string>
+    <string name="facilitytype_other">Other</string>
 </resources>

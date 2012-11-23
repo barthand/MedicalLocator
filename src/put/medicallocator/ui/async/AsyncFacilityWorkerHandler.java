@@ -13,7 +13,8 @@ import android.os.Message;
 public class AsyncFacilityWorkerHandler extends Handler {
 
 	private static final String ASYNC_THREAD_NAME = "AsyncWorker";
-	private static final int QUERY_COMPLETED = 0;
+    private static final int QUERY_STARTED = 0;
+	private static final int QUERY_COMPLETED = 1;
 
 	private final HandlerThread asyncWorkerThread;
 	private final Looper asyncLooper;
@@ -26,6 +27,7 @@ public class AsyncFacilityWorkerHandler extends Handler {
 	}
 
 	public interface FacilityQueryListener {
+	    void onAsyncFacilityQueryStarted();
 		void onAsyncFacilityQueryCompleted(List<Facility> result);
 	}
 
@@ -66,13 +68,18 @@ public class AsyncFacilityWorkerHandler extends Handler {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void handleMessage(Message msg) {
-		switch (msg.what) {
-			case QUERY_COMPLETED:
-				final FacilityQueryListener targetListener;
-				synchronized (this) {
-					targetListener = listener.get();
-				}
+        final FacilityQueryListener targetListener;
+        synchronized (this) {
+            targetListener = listener.get();
+        }
 
+        switch (msg.what) {
+		    case QUERY_STARTED:
+                if (targetListener != null) {
+                    targetListener.onAsyncFacilityQueryStarted();
+                }
+                return;
+			case QUERY_COMPLETED:
 				if (targetListener != null) {
 					final List<Facility> result = (List<Facility>) msg.obj;
 					targetListener.onAsyncFacilityQueryCompleted(result);
@@ -86,7 +93,7 @@ public class AsyncFacilityWorkerHandler extends Handler {
 
 		private static final int START_QUERY = 0;
 
-		private Handler targetHandler;
+		private final Handler targetHandler;
 
 		public WorkerHandler(Looper looper, Handler targetHandler) {
 			super(looper);
@@ -97,10 +104,11 @@ public class AsyncFacilityWorkerHandler extends Handler {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 				case START_QUERY:
+				    dispatchMessage(QUERY_STARTED, null);
 					FacilityQueryExecutor executor = (FacilityQueryExecutor) msg.obj;
 					try {
 						MyLog.d("TEST", "Executing query in " + Thread.currentThread());
-						dispatchResult(executor.execute());
+						dispatchMessage(QUERY_COMPLETED, executor.execute());
 					} catch (Exception e) {
 						// Query didn't finish properly! There is no need to invoke the callback.
 					}
@@ -109,8 +117,8 @@ public class AsyncFacilityWorkerHandler extends Handler {
 			super.handleMessage(msg);
 		}
 
-		private void dispatchResult(List<Facility> result) {
-			final Message message = targetHandler.obtainMessage(AsyncFacilityWorkerHandler.QUERY_COMPLETED);
+		private void dispatchMessage(int what, Object result) {
+			final Message message = targetHandler.obtainMessage(what);
 			message.obj = result;
 			message.sendToTarget();
 		}

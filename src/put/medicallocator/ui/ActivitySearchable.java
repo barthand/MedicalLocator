@@ -1,7 +1,6 @@
 package put.medicallocator.ui;
 
 import java.util.List;
-import java.util.Map;
 
 import put.medicallocator.R;
 import put.medicallocator.io.IFacilityDAO;
@@ -17,7 +16,6 @@ import android.app.ListActivity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,24 +56,36 @@ public class ActivitySearchable extends ListActivity implements FacilityQueryLis
         	query = intent.getStringExtra(SearchManager.QUERY);
         	doSearch(query);
         }
-
+    }
+    
+    @Override
+    public void onAsyncFacilityQueryStarted() {
+        // Empty
     }
 
-	private void doSearch(final String query) {
-		MyLog.d(TAG, "Performing search with query: " + query);
-		start = System.currentTimeMillis();
-
-		facilityWorker.scheduleQuery(new FacilityQueryExecutor() {
-			public List<Facility> execute() throws Exception {
-				return facilityDao.findWithKeyword(query);
-			}
-		});
-	}
-
-	public void onQueryComplete(int token, final Cursor cursor, final Map<String, Integer> columnMapping) {
-	}
-
 	@Override
+    public void onAsyncFacilityQueryCompleted(List<Facility> result) {
+    	stop = System.currentTimeMillis();
+    	MyLog.d(TAG, "Query took " + (stop-start) + " ms, returned rows: " + result.size());
+    
+    	if (result.size() == 0) {
+    		/* Result set is empty */
+    		final String format = getResources().getString(R.string.activitysearch_noresults);
+    		progressBar.setVisibility(View.GONE);
+    		infoTextView.setText(String.format(format, query));
+    	} else {
+    		final View header = getLayoutInflater().inflate(R.layout.list_view_header, null);
+    		final TextView headerTextView = (TextView) header.findViewById(android.R.id.text1);
+    		final String format = getResources().getString(R.string.activitysearch_returnedrows);
+    
+    		headerTextView.setText(String.format(format, query, result.size()));
+    
+    		getListView().addHeaderView(header);
+    		setListAdapter(new SearchFacilityAdapter(this, result));
+    	}
+    }
+
+    @Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		final LayoutInflater inflater = getLayoutInflater();
 		final Facility facility = (Facility) l.getItemAtPosition(position);
@@ -85,50 +95,51 @@ public class ActivitySearchable extends ListActivity implements FacilityQueryLis
 		dialog.show();
 	}
 
-	public void onAsyncFacilityQueryCompleted(List<Facility> result) {
-		stop = System.currentTimeMillis();
-		MyLog.d(TAG, "Query took " + (long) (stop-start) + " ms, returned rows: " + result.size());
+	private void doSearch(final String query) {
+    	MyLog.d(TAG, "Performing search with query: " + query);
+    	start = System.currentTimeMillis();
+    
+    	facilityWorker.scheduleQuery(new FacilityQueryExecutor() {
+    		@Override
+            public List<Facility> execute() throws Exception {
+    			return facilityDao.findWithKeyword(query);
+    		}
+    	});
+    }
 
-		if (result.size() == 0) {
-			/* Result set is empty */
-			final String format = getResources().getString(R.string.activitysearch_noresults);
-			progressBar.setVisibility(View.GONE);
-			infoTextView.setText(String.format(format, query));
-		} else {
-			final View header = getLayoutInflater().inflate(R.layout.list_view_header, null);
-			final TextView headerTextView = (TextView) header.findViewById(android.R.id.text1);
-			final String format = getResources().getString(R.string.activitysearch_returnedrows);
+    private static class SearchFacilityAdapter extends ArrayAdapter<Facility> {
 
-			headerTextView.setText(String.format(format, query, result.size()));
-
-			getListView().addHeaderView(header);
-			setListAdapter(new SearchFacilityAdapter(this, result));
-		}
-	}
-
-	private static class SearchFacilityAdapter extends ArrayAdapter<Facility> {
-
+	    private static class ViewHolder { 
+	        public TextView headerTextView;
+	        public TextView footerTextView;
+	        
+	    }
 		public SearchFacilityAdapter(Context context, List<Facility> source) {
 			super(context, android.R.layout.simple_list_item_1, source);
 		}
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
+		    ViewHolder holder;
 			if (convertView == null) {
 		        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				convertView = inflater.inflate(R.layout.list_item_search, parent, false);
+				
+				holder = new ViewHolder();
+				holder.headerTextView = (TextView) convertView.findViewById(android.R.id.text1);
+				holder.footerTextView = (TextView) convertView.findViewById(android.R.id.text2);
+				convertView.setTag(holder);
+			} else {
+	            holder = (ViewHolder) convertView.getTag();
 			}
-
-			final TextView headerTextView = (TextView) convertView.findViewById(android.R.id.text1);
-			final TextView footerTextView = (TextView) convertView.findViewById(android.R.id.text2);
 
 			final Facility facility = getItem(position);
 
 			if (facility.getName() != null) {
-				headerTextView.setText(facility.getName());
+				holder.headerTextView.setText(facility.getName());
 			}
 			if (facility.getAddress() != null) {
-				footerTextView.setText(facility.getAddress());
+				holder.footerTextView.setText(facility.getAddress());
 			}
 
 			return convertView;

@@ -3,9 +3,10 @@ package put.medicallocator.ui.overlay.utils;
 import java.util.List;
 
 import put.medicallocator.io.model.Facility;
+import put.medicallocator.ui.overlay.DrawableCache;
+import put.medicallocator.ui.overlay.DrawableContext;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Projection;
@@ -13,20 +14,18 @@ import com.google.android.maps.Projection;
 public class HitTestFacilityLookupStrategy implements FacilityLookupStrategy {
 
     private final List<Facility> source;
+    private final DrawableCache drawableCache;
     
-    private int markerHalfWidth;
-    private int markerHalfHeight;
-
     private final Point facilityOutPoint = new Point();
     private final Point targetOutPoint = new Point();
     private final Rect rect = new Rect();
 
-    public HitTestFacilityLookupStrategy(List<Facility> source, Drawable marker) {
+    public HitTestFacilityLookupStrategy(List<Facility> source, DrawableCache drawableCache) {
         this.source = source;
-        this.markerHalfHeight = marker.getIntrinsicHeight() / 2;
-        this.markerHalfWidth = marker.getIntrinsicWidth() / 2;
+        this.drawableCache = drawableCache;
     }
 
+    @Override
     public Facility findNearestFacility(GeoPoint point, Projection projection) {
         for (Facility facility : source) {
             if (hitTest(facility, point, projection)) {
@@ -38,13 +37,14 @@ public class HitTestFacilityLookupStrategy implements FacilityLookupStrategy {
     }
 
     private boolean hitTest(Facility facility, GeoPoint point, Projection projection) {
-        final GeoPoint facilityGeoPoint = facility.getGeoPoint();
+        final GeoPoint facilityGeoPoint = facility.getLocation();
+        final DrawableContext drawableContext = drawableCache.get(facility.getFacilityType());
         
         projection.toPixels(facilityGeoPoint, facilityOutPoint);
         projection.toPixels(point, targetOutPoint);
 
-        rect.set(facilityOutPoint.x - markerHalfWidth, facilityOutPoint.y - markerHalfHeight, 
-                facilityOutPoint.x + markerHalfWidth, facilityOutPoint.y + markerHalfHeight);
+        rect.set(facilityOutPoint.x - drawableContext.getHalfWidth(), facilityOutPoint.y - drawableContext.getHalfHeight(), 
+                facilityOutPoint.x + drawableContext.getHalfWidth(), facilityOutPoint.y + drawableContext.getHalfHeight());
         
         return rect.contains(targetOutPoint.x, targetOutPoint.y);
     }

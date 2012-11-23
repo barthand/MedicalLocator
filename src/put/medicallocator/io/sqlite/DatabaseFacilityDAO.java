@@ -2,17 +2,22 @@ package put.medicallocator.io.sqlite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import put.medicallocator.io.DAOException;
 import put.medicallocator.io.IFacilityDAO;
 import put.medicallocator.io.model.Facility;
+import put.medicallocator.io.model.FacilityType;
 import put.medicallocator.io.sqlite.DatabaseContract.FacilityColumns;
 import put.medicallocator.io.sqlite.DatabaseContract.Queries;
 import put.medicallocator.io.sqlite.DatabaseContract.Queries.FacilityQuery;
 import put.medicallocator.io.sqlite.DatabaseContract.Tables;
+import put.medicallocator.ui.async.SearchCriteria;
 import put.medicallocator.utils.GeoUtils;
 import put.medicallocator.utils.MyLog;
+import put.medicallocator.utils.StringUtils;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -30,56 +35,86 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 
 	private static final String TAG = "DatabaseProvider";
 
-	private DatabaseOpenHelper dbHelper;
+	private final DatabaseOpenHelper dbHelper;
 
 	public DatabaseFacilityDAO(Context context) {
 		dbHelper = new DatabaseOpenHelper(context);
 	}
 
-	public List<Facility> findWithinArea(GeoPoint lowerLeft, GeoPoint upperRight) throws DAOException {
+	@Override
+    public List<Facility> findWithinArea(GeoPoint lowerLeft, GeoPoint upperRight) throws DAOException {
 		return findNamedWithinArea(lowerLeft, upperRight, null);
 	}
 
-	public List<Facility> findNamedWithinArea(GeoPoint lowerLeft, GeoPoint upperRight, String[] names) throws DAOException {
+	@Override
+    public List<Facility> findNamedWithinArea(GeoPoint lowerLeft, GeoPoint upperRight, SearchCriteria criteria) throws DAOException {
 		final StringBuilder selection = new StringBuilder();
+		final List<String> selectionArgs = new ArrayList<String>();
+		
 		selection.append(FacilityColumns.LATITUDE).append(" > ? AND ")
 			.append(FacilityColumns.LONGITUDE).append(" > ? AND ")
 			.append(FacilityColumns.LATITUDE).append(" < ? AND ")
 			.append(FacilityColumns.LONGITUDE).append(" < ?");
-
-		if (names != null && names.length > 0) {
-			selection.append(" AND ").append(getSQLLikeClause(FacilityColumns.NAME, names));
+		
+        addCoordinatesAsArgs(lowerLeft, upperRight, selectionArgs);
+		
+		if (!StringUtils.isEmpty(criteria.getQuery())) {
+			selection.append(" AND ").append(FacilityColumns.NAME).append(" LIKE ? ");
+			selectionArgs.add('%' + criteria.getQuery() + '%');
+		}
+		
+		if (criteria.getAllowedTypes() != null) {
+            if (criteria.getAllowedTypes().size() > 0) {
+                selection.append(" AND ").append(getSqlInClause(FacilityColumns.TYPE, criteria.getAllowedTypes()));
+		        selectionArgs.addAll(getSqlInArgs(extractIDs(criteria.getAllowedTypes())));
+		    } else {
+		        return new ArrayList<Facility>();
+		    }
 		}
 
-		final double[] minCoords = GeoUtils.convertToDegrees(lowerLeft);
-		final double[] maxCoords = GeoUtils.convertToDegrees(upperRight);
-
-		final double minLatitude = minCoords[0];
-		final double minLongitude = minCoords[1];
-		final double maxLatitude = maxCoords[0];
-		final double maxLongitude = maxCoords[1];
-
-		final String[] selectionArgs = new String[] {
-				Double.toString(minLatitude),
-				Double.toString(minLongitude),
-				Double.toString(maxLatitude),
-				Double.toString(maxLongitude)
-		};
-
-		final Cursor cursor = queryDB(Tables.FACILITY, FacilityQuery.PROJECTION, selection.toString(), selectionArgs, null);
-		return createResultList(cursor);
+		Cursor cursor = null; 
+		try {
+		    final String[] args = selectionArgs.toArray(new String[selectionArgs.size()]);
+		    cursor = queryDB(Tables.FACILITY, FacilityQuery.PROJECTION, selection.toString(), args, null);
+		    return createResultList(cursor);
+		} finally {
+	        safeCloseCursor(cursor);
+	    }
 	}
 
-	public List<Facility> findWithAddress(String address) {
+    private void addCoordinatesAsArgs(GeoPoint lowerLeft, GeoPoint upperRight, final List<String> selectionArgs) {
+        final double[] minCoords = GeoUtils.convertToDegrees(lowerLeft);
+        final double[] maxCoords = GeoUtils.convertToDegrees(upperRight);
+
+        final double minLatitude = minCoords[0];
+        final double minLongitude = minCoords[1];
+        final double maxLatitude = maxCoords[0];
+        final double maxLongitude = maxCoords[1];
+
+        selectionArgs.addAll(Arrays.asList(
+            Double.toString(minLatitude),
+            Double.toString(minLongitude), 
+            Double.toString(maxLatitude),
+            Double.toString(maxLongitude)
+        ));
+    }
+
+	@Override
+    public List<Facility> findWithAddress(String address) {
 		final String selection = FacilityColumns.ADDRESS + " LIKE ?";
 		final String[] selectionArgs = new String[] { "%" + address + "%" };
 
-		final Cursor cursor = queryDB(0, Tables.FACILITY, FacilityQuery.PROJECTION, selection, selectionArgs, null);
-
-		return createResultList(cursor);
+		Cursor cursor = null;
+		try {
+		    cursor = queryDB(0, Tables.FACILITY, FacilityQuery.PROJECTION, selection, selectionArgs, null);
+		    return createResultList(cursor);
+		} finally {
+		    safeCloseCursor(cursor);
+		}
 	}
 
-	public List<Facility> findWithKeyword(String keyword) throws DAOException {
+	@Override
+    public List<Facility> findWithKeyword(String keyword) throws DAOException {
 		final String selection =
 				FacilityColumns.ADDRESS +" LIKE ? OR "
 				+ FacilityColumns.NAME +" LIKE ?";
@@ -88,10 +123,14 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 				"%" + keyword + "%"
 			};
 
-		final Cursor cursor = queryDB(0, Tables.FACILITY, FacilityQuery.PROJECTION,
-				selection, selectionArgs, FacilityColumns.ADDRESS);
+		Cursor cursor = null;
+		try {
+	        cursor = queryDB(0, Tables.FACILITY, FacilityQuery.PROJECTION, selection, selectionArgs, FacilityColumns.ADDRESS);
+	        return createResultList(cursor);
+		} finally {
+		    safeCloseCursor(cursor);
+		}
 
-		return createResultList(cursor);
 	}
 
 	private Cursor queryDB(final String table, final String[] projection,
@@ -124,17 +163,59 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 		return result;
 	}
 
-	private static String getSQLLikeClause(String quailfiedField, String[] values) {
-		StringBuilder builder = new StringBuilder();
-		final int count = values.length;
+	private static List<Integer> extractIDs(Collection<FacilityType> types) {
+	    final List<Integer> result = new ArrayList<Integer>();
+	    for (FacilityType type : types) {
+	        result.add(type.getId());
+	    }
+	    return result;
+	}
+	
+	private static String getSqlLikeClause(String quailfiedField, Collection<?> values) {
+		final StringBuilder builder = new StringBuilder();
+        final Iterator<?> iterator = values.iterator();
 		builder.append("(");
-		for (int i=0; i<count-1; i++) {
-			builder.append(quailfiedField).append(" LIKE '% ").append(values[i]).append(" %' OR ");
+        while (iterator.hasNext()) {
+            iterator.next();
+			builder.append(quailfiedField).append(" LIKE ? ");
+			if (iterator.hasNext()) {
+			    builder.append(" OR "); 
+			}
 		}
-		builder.append(quailfiedField).append(" LIKE '% ").append(values[count-1]).append(" %')");
+		builder.append(")");
 		return builder.toString();
 	}
+	
+	private static String getSqlInClause(String quailfiedField, Collection<?> values) {
+        final StringBuilder builder = new StringBuilder();        
+        final Iterator<?> iterator = values.iterator();
+        builder.append("(").append(quailfiedField).append(" IN (");
+        while (iterator.hasNext()) {
+            iterator.next();
+            builder.append("?");
+            if (iterator.hasNext()) { 
+                builder.append(","); 
+            }
+        }
+        builder.append("))");
+        return builder.toString();
+    }
+	
+	private static List<String> getSqlInArgs(Collection<?> values) {
+	    final List<String> args = new ArrayList<String>();
+	    final Iterator<?> iterator = values.iterator();
+	    while (iterator.hasNext()) {
+	        args.add(iterator.next().toString());
+	    }
+	    return args;
+	}
 
+	private static void safeCloseCursor(Cursor cursor) {
+        if (cursor != null && !cursor.isClosed()) {
+            cursor.close();
+        }
+	}
+	
 	/**
 	 * Internal helper class to manage database connections.
 	 */

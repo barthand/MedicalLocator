@@ -29,7 +29,7 @@ public class BasicFacilityLookupStrategy implements FacilityLookupStrategy {
         float minDistance = Float.MAX_VALUE;
 
         for (Facility facility : source) {
-            final GeoPoint currentGeoPoint = facility.getGeoPoint();
+            final GeoPoint currentGeoPoint = facility.getLocation();
 
             final float latitudeDistance = point.getLatitudeE6() - currentGeoPoint.getLatitudeE6();
             final float longitudeDistance = point.getLongitudeE6() - currentGeoPoint.getLongitudeE6();
@@ -42,7 +42,7 @@ public class BasicFacilityLookupStrategy implements FacilityLookupStrategy {
         }
 
         if (filterDistantTaps) {
-            if (!isWithinPixelRadius(projection, nearest.getGeoPoint(), point, PIXELS_DISTANCE_TO_TAP_ACCEPT)) {
+            if (!isWithinPixelRadius(projection, nearest.getLocation(), point, PIXELS_DISTANCE_TO_TAP_ACCEPT)) {
                 return null;
             }
         }
