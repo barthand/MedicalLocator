@@ -75,7 +75,14 @@
 		                android:layout_height="wrap_content"
 		                android:src="@drawable/ic_menu_close_clear_cancel" />
 		        </LinearLayout>
-	    
+
+			    <ImageButton
+                    android:id="@+id/typesSelectAllOrNone" 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:onClick="onSelectAllOrNoneTypes"/>
+		    		    
 		    	<ScrollView 
 		            android:fillViewport="false"
 		            android:layout_width="fill_parent"
@@ -83,12 +90,14 @@
 		            android:layout_margin="5dp"
 		            android:id="@+id/drawer_scrollview">
 		
-		            <LinearLayout
+		           <LinearLayout
 		                android:id="@+id/drawer_filters_viewgroup"
 		                android:layout_width="fill_parent"
 		                android:layout_height="wrap_content"
 		                android:orientation="vertical"
-		                android:background="@drawable/drawer_types_background"/>
+		                android:background="@drawable/drawer_types_background">
+		                
+	            	</LinearLayout>
 		            
 		        </ScrollView>
 		    		    	    	    

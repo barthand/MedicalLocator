@@ -32,6 +32,15 @@ public class SearchCriteria {
         allowedTypes.add(facilityType);
     }
     
+    public boolean removeAll() {
+        lastChangeTimestamp = System.currentTimeMillis();
+        if (allowedTypes == null) {
+            return false;
+        }
+        allowedTypes.clear();
+        return true;
+    }
+    
     public boolean removeAllowedType(FacilityType facilityType) {
         lastChangeTimestamp = System.currentTimeMillis();
         if (allowedTypes == null) {

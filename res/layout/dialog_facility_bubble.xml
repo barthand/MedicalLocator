@@ -1,57 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/dialog_root"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:padding="10dip">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillViewport="false"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
     
-    <TextView style="@style/DialogText" android:id="@+id/name_textview"/>
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:gravity="center_vertical">
-    
-    	<ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/route_button" android:layout_height="wrap_content" android:src="@drawable/ic_route" android:background="@null"/>
-       	<TextView style="@style/DialogText" android:id="@+id/address_textview"/>
-   	</LinearLayout>
-    
-    <LinearLayout
-        android:id="@+id/phone_container"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:gravity="center_vertical">
-    
-	    <ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/call_button" android:layout_height="wrap_content" android:src="@drawable/ic_phone" android:background="@null"/>
-	    <TextView style="@style/DialogText" android:id="@+id/phone_textview" android:textColorLink="@android:color/primary_text_dark"/>
-    
-    </LinearLayout>
-    
-
-    <LinearLayout
-        android:id="@+id/email_container"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:gravity="center_vertical">
-    
-    	<ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/email_button" android:layout_height="wrap_content" android:src="@drawable/ic_gmail" android:background="@null"/>
-   	    <TextView style="@style/DialogText" android:id="@+id/email_textview" android:textColorLink="@android:color/primary_text_dark"/>
-   	    
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/webpage_container"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:gravity="center_vertical">
-    
-		<ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/www_button" android:layout_height="wrap_content" android:src="@drawable/ic_globe" android:background="@null"/>	    
-		<TextView style="@style/DialogText" android:id="@+id/homepage_textview" android:textColorLink="@android:color/primary_text_dark"/>
-    </LinearLayout>
-
-</LinearLayout>
+	<LinearLayout
+		android:id="@+id/dialog_root"
+	    android:orientation="vertical"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:padding="10dip">
+	    
+	    <TextView style="@style/DialogText" android:id="@+id/name_textview"/>
+	
+	    <LinearLayout
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="5dp"
+	        android:gravity="center_vertical">
+	    
+	    	<ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/route_button" android:layout_height="wrap_content" android:src="@drawable/ic_route" android:background="@null"/>
+	       	<TextView style="@style/DialogText" android:id="@+id/address_textview"/>
+	   	</LinearLayout>
+	    
+	    <LinearLayout
+	        android:id="@+id/phone_container"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="5dp"
+	        android:gravity="center_vertical">
+	    
+		    <ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/call_button" android:layout_height="wrap_content" android:src="@drawable/ic_phone" android:background="@null"/>
+		    <TextView style="@style/DialogText" android:id="@+id/phone_textview" android:textColorLink="@android:color/primary_text_dark"/>
+	    
+	    </LinearLayout>
+	    
+	
+	    <LinearLayout
+	        android:id="@+id/email_container"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="5dp"
+	        android:gravity="center_vertical">
+	    
+	    	<ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/email_button" android:layout_height="wrap_content" android:src="@drawable/ic_gmail" android:background="@null"/>
+	   	    <TextView style="@style/DialogText" android:id="@+id/email_textview" android:textColorLink="@android:color/primary_text_dark"/>
+	   	    
+	    </LinearLayout>
+	
+	    <LinearLayout
+	        android:id="@+id/webpage_container"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="5dp"
+	        android:gravity="center_vertical">
+	    
+			<ImageButton style="@style/ImageButton" android:layout_width="wrap_content" android:id="@+id/www_button" android:layout_height="wrap_content" android:src="@drawable/ic_globe" android:background="@null"/>	    
+			<TextView style="@style/DialogText" android:id="@+id/homepage_textview" android:textColorLink="@android:color/primary_text_dark"/>
+	    </LinearLayout>
+	
+	</LinearLayout>
+</ScrollView>

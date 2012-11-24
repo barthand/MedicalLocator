@@ -10,6 +10,7 @@ import put.medicallocator.utils.MyLog;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.view.MotionEvent;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -37,6 +38,8 @@ public class FacilitiesOverlay extends Overlay {
     private final DrawableCache drawableCache;
     private final FacilityTapListener tapListener;
     private final FacilityLookupStrategy lookupStrategy;
+    
+    private int lastTouchAction;
     
     FacilitiesOverlay(List<Facility> source, DrawableCache drawableCache, FacilityLookupStrategy lookupStrategy, FacilityTapListener listener) {
         this.source = source;
@@ -73,6 +76,10 @@ public class FacilitiesOverlay extends Overlay {
 
     @Override
     public boolean onTap(GeoPoint p, MapView mapView) {
+        if (lastTouchAction != MotionEvent.ACTION_UP) {
+            return false;
+        }
+        
         final long start = System.currentTimeMillis();
         
         final Facility facility = lookupStrategy.findNearestFacility(p, mapView.getProjection());
@@ -86,5 +93,11 @@ public class FacilitiesOverlay extends Overlay {
             }
         }
         return false;
+    }
+    
+    @Override
+    public boolean onTouchEvent(MotionEvent e, MapView mapView) {
+        this.lastTouchAction = e.getAction();
+        return super.onTouchEvent(e, mapView);
     }
 }

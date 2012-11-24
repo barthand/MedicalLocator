@@ -25,6 +25,7 @@ import put.medicallocator.ui.overlay.utils.FacilityTapListener;
 import put.medicallocator.ui.utils.FacilityDialogUtils;
 import put.medicallocator.ui.utils.State;
 import put.medicallocator.utils.MyLog;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -34,11 +35,13 @@ import android.content.res.Configuration;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -69,13 +72,16 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
 	/* UI related */
     private MapView mapView;
     private SlidingDrawer slidingDrawer;
+    private ImageButton selectAllOrNoneButton;
     private MyLocationOverlay locationOverlay;
     private RouteOverlay routeOverlay;
     
     private LocationListener myLocationListener;
 
+    private FacilityTypeInflateStrategy typeInflateStrategy;
+
     private QueryManager queryManager;
-    
+   
     private RouteHandler routeHandler;
     
     private final OnCheckedChangeListener filterComboBoxCheckedChangeListener = new OnCheckedChangeListener() {
@@ -88,6 +94,10 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
                 state.criteria.addAllowedType(type);
             } else {
                 state.criteria.removeAllowedType(type);
+            }
+            // Check if button is already prepared. It may be null at this point, at onCreate().
+            if (selectAllOrNoneButton != null) {
+                updateSelectAllOrNoneButton(false);
             }
         }
     };
@@ -163,7 +173,6 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
             
         });
         
-        FacilityTypeInflateStrategy typeInflateStrategy;
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             typeInflateStrategy = new LandscapeFacilityTypeInflateStrategy(this, R.id.typesGridView);
         } else {
@@ -172,6 +181,9 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
 
         typeInflateStrategy.inflate(filterComboBoxCheckedChangeListener);
         typeInflateStrategy.updateState(state.criteria);
+        
+        selectAllOrNoneButton = (ImageButton) findViewById(R.id.typesSelectAllOrNone);
+        updateSelectAllOrNoneButton(false);
     }
 
     private void initializeMapView() {
@@ -228,7 +240,49 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
         queryManager.onDestroy();
 		super.onDestroy();
 	}
-
+	
+    @Override
+    @TargetApi(Build.VERSION_CODES.ECLAIR)
+	public void onBackPressed() {
+        if (slidingDrawer.isOpened()) {
+            slidingDrawer.animateClose();
+        } else {
+            finish();
+        }
+    }
+    
+	@TargetApi(Build.VERSION_CODES.ECLAIR) // @TargetApi is dumb, it shouldn't be required here, since we override onBackPressed.
+    @Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	    if (Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.ECLAIR
+	            && keyCode == KeyEvent.KEYCODE_BACK
+	            && event.getRepeatCount() == 0) {
+	        onBackPressed();
+	        return true;
+	    }
+	    return super.onKeyDown(keyCode, event);
+	}
+	
+	private void updateSelectAllOrNoneButton(boolean updateState) {
+        if (state.criteria.getAllowedTypes().size() != FacilityType.values().length) {
+            selectAllOrNoneButton.setImageResource(R.drawable.btn_check_on_dark);
+        } else {
+            selectAllOrNoneButton.setImageResource(R.drawable.btn_check_off_dark);
+        }
+        if (updateState) {
+            typeInflateStrategy.updateState(state.criteria);
+        }
+	}
+	
+	public void onSelectAllOrNoneTypes(View v) {
+	    if (state.criteria.getAllowedTypes().size() == FacilityType.values().length) {
+	        state.criteria.getAllowedTypes().clear();
+	    } else {
+	        state.criteria.getAllowedTypes().addAll(Arrays.asList(FacilityType.values()));
+	    }
+	    updateSelectAllOrNoneButton(true);
+	}
+	
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
@@ -315,11 +369,11 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
 	        0,
 	        myLocationListener);
 
-//	    locationManager.requestLocationUpdates(
-//	        LocationManager.NETWORK_PROVIDER,
-//	        0,
-//	        0,
-//	        myLocationListener);
+	    locationManager.requestLocationUpdates(
+	        LocationManager.NETWORK_PROVIDER,
+	        0,
+	        0,
+	        myLocationListener);
 	}
 
 	private void showAbout() {
