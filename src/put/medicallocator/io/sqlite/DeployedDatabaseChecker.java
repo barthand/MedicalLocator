@@ -7,9 +7,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import put.medicallocator.io.sqlite.DatabaseContract.Queries;
+import put.medicallocator.io.sqlite.DatabaseContract.Tables;
 import put.medicallocator.utils.MyLog;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -71,11 +74,25 @@ class DeployedDatabaseChecker {
 
     	MyLog.d(TAG, "Does the DB already exist? Result: " + (db != null ? true : false));
 
-    	if (db != null && db.getVersion() == DatabaseContract.DATABASE_VERSION) {
-    		db.close();
-    		return true;
+    	try {
+        	if (db != null && db.getVersion() == DatabaseContract.DATABASE_VERSION) {
+        	    final Cursor cursor = db.rawQuery(Queries.StandardCheckRawQuery.SQL, null);
+        	    if (cursor.moveToFirst()) {
+            	    final long count = cursor.getLong(Queries.StandardCheckRawQuery.COUNT);
+            	    MyLog.d(TAG, "Found " + count + " rows in the table " + Tables.FACILITY);
+            	    return count > Queries.StandardCheckRawQuery.EXPECTED_RESULT_GT;
+        	    }
+        	    return false;
+        	}
+        	return false;
+    	} catch (Exception e) {
+            MyLog.e(TAG, "Encountered exception.", e);
+    	    return false;
+    	} finally {
+    	    if (db != null) {
+    	        db.close();
+    	    }
     	}
-    	return false;
     }
 
     /**
@@ -138,6 +155,8 @@ class DeployedDatabaseChecker {
     	// Flush and close the output stream.
     	myOutput.flush();
     	myOutput.close();
+    	
+        MyLog.d(TAG, "Built-in database has overrided default one.");
     }
 
 }

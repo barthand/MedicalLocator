@@ -330,11 +330,9 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
 
 	private void checkDataSource() {
         final DataSourceInitializerAsyncTask retrievedAsyncTask = state.daoInitializerAsyncTask;
-        if (retrievedAsyncTask != null) {
-        	if (retrievedAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
-            	retrievedAsyncTask.setListener(this);
-        	}
-        } else {
+        if (retrievedAsyncTask != null && retrievedAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
+        	retrievedAsyncTask.setListener(this);
+        } else { 
             final FacilityDAOHelper daoHelper = FacilityDAOHelper.getInstance(getApplicationContext());
     		if (!daoHelper.isDataPrepared()) {
                 showDialog(ID_DIALOG_INITIALIZE_DAO);

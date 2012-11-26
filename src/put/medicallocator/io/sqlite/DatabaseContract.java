@@ -14,7 +14,16 @@ import com.google.android.maps.GeoPoint;
 class DatabaseContract {
 
     protected static final String DATABASE_NAME = "locator.db";
-    protected static final int DATABASE_VERSION = 2;
+    
+    /**
+     * Versions History:
+     * <ull>
+     * <li><b>ver. 1</b> - first issue</li>
+     * <li><b>ver. 2</b> - Android 2.2.1 fix applied</li>
+     * <li><b>ver. 3</b> - introducing TYPE column, separated HOMEPAGE and EMAIL. New data set.</li>
+     * </ul> 
+     */
+    protected static final int DATABASE_VERSION = 3;
 
 	interface Tables {
 		String FACILITY = "facility";
@@ -48,6 +57,12 @@ class DatabaseContract {
 
 	static class Queries {
 
+	    interface StandardCheckRawQuery {
+	        String SQL = "SELECT COUNT(*) FROM " + Tables.FACILITY;
+	        long EXPECTED_RESULT_GT = 15000; 
+	        int COUNT = 0;
+	    }
+	    
 		interface FacilityQuery {
 			String[] PROJECTION = new String[] {
 					FacilityColumns._ID,
