@@ -72,6 +72,7 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
 	/* UI related */
     private MapView mapView;
     private SlidingDrawer slidingDrawer;
+    private TextView selectAllOrNoneTextView;
     private ImageButton selectAllOrNoneButton;
     private MyLocationOverlay locationOverlay;
     private RouteOverlay routeOverlay;
@@ -183,6 +184,7 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
         typeInflateStrategy.updateState(state.criteria);
         
         selectAllOrNoneButton = (ImageButton) findViewById(R.id.typesSelectAllOrNone);
+        selectAllOrNoneTextView = (TextView) findViewById(R.id.typesSelectAllOrNoneText);
         updateSelectAllOrNoneButton(false);
     }
 
@@ -265,8 +267,14 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
 	
 	private void updateSelectAllOrNoneButton(boolean updateState) {
         if (state.criteria.getAllowedTypes().size() != FacilityType.values().length) {
+            if (selectAllOrNoneTextView != null) {
+                selectAllOrNoneTextView.setText(getResources().getString(R.string.activitymain_selectall));
+            }
             selectAllOrNoneButton.setImageResource(R.drawable.btn_check_on_dark);
         } else {
+            if (selectAllOrNoneTextView != null) {
+                selectAllOrNoneTextView.setText(getResources().getString(R.string.activitymain_deselectall));
+            }
             selectAllOrNoneButton.setImageResource(R.drawable.btn_check_off_dark);
         }
         if (updateState) {
