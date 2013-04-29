@@ -21,7 +21,7 @@ public final class CollectionUtils {
      */
     public static List<Integer> getIndexesFromSparseBooleanArray(SparseBooleanArray array, boolean value) {
         List<Integer> result = new ArrayList<Integer>();
-        for (int i=0; i<array.size(); i++) {
+        for (int i = 0; i < array.size(); i++) {
             if (array.valueAt(i) == value) {
                 result.add(array.keyAt(i));
             }

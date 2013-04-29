@@ -19,7 +19,7 @@ public class HitTestFacilityLookupStrategy implements FacilityLookupStrategy {
 
     private final List<Facility> source;
     private final FacilityTypeDrawableCache drawableCache;
-    
+
     private final Point facilityOutPoint = new Point();
     private final Point targetOutPoint = new Point();
     private final Rect rect = new Rect();
@@ -36,22 +36,22 @@ public class HitTestFacilityLookupStrategy implements FacilityLookupStrategy {
                 return facility;
             }
         }
-        
+
         return null;
     }
 
     private boolean hitTest(Facility facility, GeoPoint point, Projection projection) {
         final GeoPoint facilityGeoPoint = facility.getLocation();
         final DrawableContext drawableContext = drawableCache.get(facility.getFacilityType());
-        
+
         projection.toPixels(facilityGeoPoint, facilityOutPoint);
         projection.toPixels(point, targetOutPoint);
 
-        rect.set(facilityOutPoint.x - drawableContext.getHalfWidth(), facilityOutPoint.y - drawableContext.getHalfHeight(), 
+        rect.set(facilityOutPoint.x - drawableContext.getHalfWidth(), facilityOutPoint.y - drawableContext.getHalfHeight(),
                 facilityOutPoint.x + drawableContext.getHalfWidth(), facilityOutPoint.y + drawableContext.getHalfHeight());
-        
+
         return rect.contains(targetOutPoint.x, targetOutPoint.y);
     }
-    
+
 
 }

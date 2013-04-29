@@ -83,7 +83,7 @@ public class FacilityTypeChooserDialogFactory implements DialogFactory {
 
         private String[] buildLabels() {
             final String[] result = new String[availableTypes.length];
-            for (int i=0; i<result.length; i++) {
+            for (int i = 0; i < result.length; i++) {
                 result[i] = availableTypes[i].getLabel(context);
             }
             return result;
@@ -91,7 +91,7 @@ public class FacilityTypeChooserDialogFactory implements DialogFactory {
 
         private boolean[] buildCheckedArray() {
             final boolean[] checked = new boolean[availableTypes.length];
-            for (int i=0; i<availableTypes.length; i++) {
+            for (int i = 0; i < availableTypes.length; i++) {
                 checked[i] = criteria.getAllowedTypes().contains(availableTypes[i]);
             }
             return checked;

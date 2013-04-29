@@ -30,25 +30,25 @@ import put.medicallocator.utils.StringUtils;
  * Builds the dialog showing information about {@link Facility} and allowing to call, send e-mail, show route to it.
  */
 public class FacilityDialogFactory implements DialogFactory {
-	private static final String TAG = FacilityDialogFactory.class.getName();
+    private static final String TAG = FacilityDialogFactory.class.getName();
 
-	private final Context context;
-	private final Facility facility;
-	private final LayoutInflater inflater;
-	private final LocationManager locationManager;
-	private final LastLocationStrategy lastLocationStrategy;
+    private final Context context;
+    private final Facility facility;
+    private final LayoutInflater inflater;
+    private final LocationManager locationManager;
+    private final LastLocationStrategy lastLocationStrategy;
     private final RouteOverlayManager routeOverlayManager;
 
     private Dialog dialog;
 
     public FacilityDialogFactory(Context context, Facility facility, RouteOverlayManager routeOverlayManager) {
-		this.context = context;
+        this.context = context;
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         this.lastLocationStrategy = new LastLocationStrategy();
-		this.facility = facility;
+        this.facility = facility;
         this.routeOverlayManager = routeOverlayManager;
-	}
+    }
 
     @Override
     public Dialog createDialog(Context context) {
@@ -197,7 +197,7 @@ public class FacilityDialogFactory implements DialogFactory {
         final String chooserMessage = context.getResources()
                 .getString(R.string.dialogfacilitybubble_email_app_chooser);
         emailIntent.setType("plain/text");
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { facility.getEmail() });
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{facility.getEmail()});
         context.startActivity(Intent.createChooser(emailIntent, chooserMessage));
     }
 
@@ -215,13 +215,13 @@ public class FacilityDialogFactory implements DialogFactory {
      * Finds the best last location of the user, coming either from network or GPS.
      */
     protected Location getBestSuitableLastLocation() {
-	    final Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-	    final Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        final Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        final Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
-	    if (networkLocation != null) {
-	        return lastLocationStrategy.isBetterLocation(networkLocation, gpsLocation) ? networkLocation : gpsLocation;
-	    }
-	    return null;
-	}
+        if (networkLocation != null) {
+            return lastLocationStrategy.isBetterLocation(networkLocation, gpsLocation) ? networkLocation : gpsLocation;
+        }
+        return null;
+    }
 
 }

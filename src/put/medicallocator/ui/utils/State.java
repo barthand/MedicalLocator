@@ -17,7 +17,7 @@ import java.util.Map;
  * Describes the state associated with the {@link ActivityMain}.
  */
 public class State {
-    
+
     /** Defines the start GeoPoint. Yeah, let's all do the Poznan! ;) */
     private static final GeoPoint START_GEOPOINT = GeoUtils.createGeoPoint(52.408396, 16.92838);
 

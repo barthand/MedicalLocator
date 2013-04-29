@@ -10,24 +10,25 @@ import put.medicallocator.io.sqlite.DatabaseDataSourceConfigurator;
  */
 public abstract class DataSourceConfigurator {
 
-	protected DataSourceConfigurator() { }
+    protected DataSourceConfigurator() {
+    }
 
     /**
      * Checks whether the initialization has been already done.
      */
-	public abstract boolean isConfigured();
+    public abstract boolean isConfigured();
 
     /**
      * Performs the initialization itself.
      * Before it is executed, it should be preceded by {@link #isConfigured()} checks.
      */
-	public abstract boolean firstInitialization();
+    public abstract boolean firstInitialization();
 
     /**
      * Creates a default instance of {@link DataSourceConfigurator} (currently {@link DatabaseDataSourceConfigurator}).
      */
-	public static DataSourceConfigurator getInstance(Context context) {
-		return new DatabaseDataSourceConfigurator(context);
-	}
+    public static DataSourceConfigurator getInstance(Context context) {
+        return new DatabaseDataSourceConfigurator(context);
+    }
 
 }

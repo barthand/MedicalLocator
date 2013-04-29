@@ -22,20 +22,21 @@ public enum FacilityType {
     AMBULATORY(6, R.drawable.marker, R.string.facilitytype_ambulatory),
     OTHER(100, R.drawable.marker, R.string.facilitytype_other);
 
-    private static final Map<Integer, FacilityType> FACILITY_TYPE_MAP; 
+    private static final Map<Integer, FacilityType> FACILITY_TYPE_MAP;
+
     static {
         Map<Integer, FacilityType> map = new HashMap<Integer, FacilityType>();
         for (FacilityType type : FacilityType.values()) {
             map.put(type.getId(), type);
-            
+
         }
         FACILITY_TYPE_MAP = Collections.unmodifiableMap(map);
     }
 
     private final int id;
-    
+
     private final int drawableId;
-    
+
     private final int stringId;
 
     private FacilityType(int id, int drawableId, int stringId) {

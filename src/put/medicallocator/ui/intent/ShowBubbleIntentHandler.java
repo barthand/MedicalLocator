@@ -124,8 +124,8 @@ public class ShowBubbleIntentHandler implements IntentHandler {
      */
     private View inflateBubbleView(boolean initiallyVisible) {
         final View bubbleView = inflater.inflate(R.layout.bubble_view, mapView, false);
-        ((TextView)bubbleView.findViewById(R.id.bubble_title)).setText(facility.getName());
-        ((TextView)bubbleView.findViewById(R.id.bubble_subtitle)).setText(facility.getAddress());
+        ((TextView) bubbleView.findViewById(R.id.bubble_title)).setText(facility.getName());
+        ((TextView) bubbleView.findViewById(R.id.bubble_subtitle)).setText(facility.getAddress());
         bubbleView.findViewById(R.id.bubble_close_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,6 +157,7 @@ public class ShowBubbleIntentHandler implements IntentHandler {
     private static class FacilityParcelable implements Parcelable {
 
         private Facility facility;
+
         private FacilityParcelable(Facility facility) {
             this.facility = facility;
         }

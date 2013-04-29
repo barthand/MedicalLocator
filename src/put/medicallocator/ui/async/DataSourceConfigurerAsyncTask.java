@@ -11,37 +11,37 @@ public class DataSourceConfigurerAsyncTask extends AsyncTask<Void, Void, Boolean
     /**
      * Associated {@link DataSourceConfigurator} instance.
      */
-	private final DataSourceConfigurator helper;
+    private final DataSourceConfigurator helper;
 
     /**
      * Associated {@link DataSourceInitializerListener} instance.
      */
-	private DataSourceInitializerListener listener;
+    private DataSourceInitializerListener listener;
 
-	public DataSourceConfigurerAsyncTask(DataSourceConfigurator helper, DataSourceInitializerListener listener) {
-		this.helper = helper;
-		this.listener = listener;
-	}
+    public DataSourceConfigurerAsyncTask(DataSourceConfigurator helper, DataSourceInitializerListener listener) {
+        this.helper = helper;
+        this.listener = listener;
+    }
 
-	public void setListener(DataSourceInitializerListener listener) {
-		synchronized (this) {
-			this.listener = listener;
-		}
-	}
+    public void setListener(DataSourceInitializerListener listener) {
+        synchronized (this) {
+            this.listener = listener;
+        }
+    }
 
-	@Override
-	protected Boolean doInBackground(Void... params) {
-		return helper.firstInitialization();
-	}
+    @Override
+    protected Boolean doInBackground(Void... params) {
+        return helper.firstInitialization();
+    }
 
-	@Override
-	protected void onPostExecute(Boolean result) {
-		synchronized (this) {
-			listener.onDatabaseInitialized(result);
-		}
-	}
+    @Override
+    protected void onPostExecute(Boolean result) {
+        synchronized (this) {
+            listener.onDatabaseInitialized(result);
+        }
+    }
 
-	public interface DataSourceInitializerListener {
-		void onDatabaseInitialized(boolean success);
-	}
+    public interface DataSourceInitializerListener {
+        void onDatabaseInitialized(boolean success);
+    }
 }

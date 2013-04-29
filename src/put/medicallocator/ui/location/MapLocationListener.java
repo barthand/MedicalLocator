@@ -22,7 +22,7 @@ public class MapLocationListener implements LocationListener {
     private final State state;
 
     private Location lastKnownLocation;
-    
+
     public MapLocationListener(MapView mapView, State state) {
         this.mapView = mapView;
         this.state = state;

@@ -36,11 +36,11 @@ public class DirectionApiRouteProvider extends AbstractRouteOverHttpProvider {
     @Override
     protected String buildUrl() {
         return new StringBuilder(BASE_URL)
-            .append(RequestParameters.ORIGIN).append('=').append(startPoint.getLatitude())
-            .append(',').append(startPoint.getLongitude())
-            .append('&').append(RequestParameters.DESTINATION).append('=').append(finishPoint.getLatitude())
-            .append(',').append(finishPoint.getLongitude())
-            .append('&').append(RequestParameters.SENSOR).append("=false").toString();
+                .append(RequestParameters.ORIGIN).append('=').append(startPoint.getLatitude())
+                .append(',').append(startPoint.getLongitude())
+                .append('&').append(RequestParameters.DESTINATION).append('=').append(finishPoint.getLatitude())
+                .append(',').append(finishPoint.getLongitude())
+                .append('&').append(RequestParameters.SENSOR).append("=false").toString();
     }
 
     @Override
@@ -58,7 +58,7 @@ public class DirectionApiRouteProvider extends AbstractRouteOverHttpProvider {
 
                 final int polylineSize = polylineDecoded.size();
                 final RoutePoint[] points = new RoutePoint[polylineSize];
-                for (int i=0; i<polylineSize; i++) {
+                for (int i = 0; i < polylineSize; i++) {
                     points[i] = buildRoutePoint(polylineDecoded.get(i));
                 }
                 routeSpec.setPoints(points);

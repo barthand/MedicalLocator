@@ -27,12 +27,12 @@ public class QueryController {
     /** Defines the radius (in km) within which objects are searched. */
     private static final int RADIUS_TO_QUERY_IN_KILOMETERS = 10;
 
-    private final Handler uiThreadHandler;    
+    private final Handler uiThreadHandler;
     private final MapView mapView;
     private final SearchCriteria criteria;
 
     private final FacilityQueryListener listenerDelegate;
-    
+
     /* DAO layer */
     private final IFacilityDAO facilityDao;
     private final AsyncFacilityWorkerHandler queryWorkerHandler;

@@ -16,10 +16,10 @@ public final class LocationManagerUtils {
 
         for (String provider : providers) {
             locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                0,
-                0,
-                listener);
+                    LocationManager.GPS_PROVIDER,
+                    0,
+                    0,
+                    listener);
         }
     }
 

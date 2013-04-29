@@ -31,20 +31,20 @@ import java.util.List;
  */
 public class ActivitySearchable extends SherlockListActivity implements FacilityQueryListener {
 
-	private static final String TAG = ActivitySearchable.class.getName();
+    private static final String TAG = ActivitySearchable.class.getName();
 
-	private String query;
-	private long start, stop;
+    private String query;
+    private long start, stop;
 
-	private ProgressBar progressBar;
-	private TextView infoTextView;
+    private ProgressBar progressBar;
+    private TextView infoTextView;
 
     private IFacilityDAO facilityDao;
     private AsyncFacilityWorkerHandler facilityWorker;
 
     // TODO: Sorting by types (separators would be required), names?
 
-	/** Called when the activity is first created. */
+    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,8 +61,8 @@ public class ActivitySearchable extends SherlockListActivity implements Facility
         // Get the intent, verify the action and get the query
         Intent intent = getIntent();
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-        	query = intent.getStringExtra(SearchManager.QUERY);
-        	doSearch(query);
+            query = intent.getStringExtra(SearchManager.QUERY);
+            doSearch(query);
         }
     }
 
@@ -83,47 +83,51 @@ public class ActivitySearchable extends SherlockListActivity implements Facility
         // Empty
     }
 
-	@Override
+    @Override
     public void onAsyncFacilityQueryCompleted(List<Facility> result) {
-    	stop = System.currentTimeMillis();
-    	MyLog.d(TAG, "Query took " + (stop-start) + " ms, returned rows: " + result.size());
-    
-    	if (result.size() == 0) {
-    		/* Result set is empty */
-    		final String format = getResources().getString(R.string.activitysearch_noresults);
-    		progressBar.setVisibility(View.GONE);
-    		infoTextView.setText(String.format(format, query));
-    	} else {
-    		final View header = getLayoutInflater().inflate(R.layout.list_view_header, null);
-    		final TextView headerTextView = (TextView) header.findViewById(android.R.id.text1);
-    		final String format = getResources().getString(R.string.activitysearch_returnedrows);
-    
-    		headerTextView.setText(String.format(format, query, result.size()));
-    
-    		getListView().addHeaderView(header);
+        stop = System.currentTimeMillis();
+        MyLog.d(TAG, "Query took " + (stop - start) + " ms, returned rows: " + result.size());
+
+        if (result.size() == 0) {
+            /* Result set is empty */
+            final String format = getResources().getString(R.string.activitysearch_noresults);
+            progressBar.setVisibility(View.GONE);
+            infoTextView.setText(String.format(format, query));
+        } else {
+            final View header = getLayoutInflater().inflate(R.layout.list_view_header, null);
+            final TextView headerTextView = (TextView) header.findViewById(android.R.id.text1);
+            final String format = getResources().getString(R.string.activitysearch_returnedrows);
+
+            headerTextView.setText(String.format(format, query, result.size()));
+
+            getListView().addHeaderView(header);
             Collections.sort(result, new Comparator<Facility>() {
                 @Override
                 public int compare(Facility lhs, Facility rhs) {
-                    if (lhs == null) { return 1; }
-                    if (rhs == null) { return -1; }
+                    if (lhs == null) {
+                        return 1;
+                    }
+                    if (rhs == null) {
+                        return -1;
+                    }
                     return lhs.getName().compareTo(rhs.getName());
                 }
             });
-    		setListAdapter(new SearchFacilityAdapter(this, result));
-    	}
+            setListAdapter(new SearchFacilityAdapter(this, result));
+        }
     }
 
     @Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		final Facility facility = (Facility) l.getItemAtPosition(position);
-		new FacilityDialogFactory(this, facility, null).createDialog(this).show();
-	}
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        final Facility facility = (Facility) l.getItemAtPosition(position);
+        new FacilityDialogFactory(this, facility, null).createDialog(this).show();
+    }
 
-	private void doSearch(final String query) {
-    	MyLog.d(TAG, "Performing search with query: " + query);
-    	start = System.currentTimeMillis();
-    
-    	facilityWorker.invokeAsyncQuery(new FacilityQueryExecutor() {
+    private void doSearch(final String query) {
+        MyLog.d(TAG, "Performing search with query: " + query);
+        start = System.currentTimeMillis();
+
+        facilityWorker.invokeAsyncQuery(new FacilityQueryExecutor() {
             @Override
             public List<Facility> execute() throws Exception {
                 return facilityDao.findWithKeyword(query);
@@ -137,11 +141,11 @@ public class ActivitySearchable extends SherlockListActivity implements Facility
         // Could give a boost here..
         private final SectionIndexer indexer;
 
-	    private static class ViewHolder {
-	        private TextView headerTextView;
-	        private TextView footerTextView;
+        private static class ViewHolder {
+            private TextView headerTextView;
+            private TextView footerTextView;
             private ImageButton showOnMapButton;
-	    }
+        }
 
         private final View.OnClickListener showOnMapClickListener = new View.OnClickListener() {
             @Override
@@ -154,44 +158,44 @@ public class ActivitySearchable extends SherlockListActivity implements Facility
             }
         };
 
-		public SearchFacilityAdapter(Context context, List<Facility> source) {
-			super(context, android.R.layout.simple_list_item_1, source);
+        public SearchFacilityAdapter(Context context, List<Facility> source) {
+            super(context, android.R.layout.simple_list_item_1, source);
             indexer = new AlphabetArrayIndexer<Facility>(source, new AlphabetArrayIndexer.IndexedValueReturner<Facility>() {
                 @Override
                 public String indexedValue(Facility value) {
                     return value.getName();
                 }
             }, " ABCDEFGHIJKLMNOPQRSTUVWXYZ"); // TODO: Polish Alphabet?
-		}
+        }
 
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-		    ViewHolder holder;
-			if (convertView == null) {
-		        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = inflater.inflate(R.layout.list_item_search, parent, false);
-				
-				holder = new ViewHolder();
-				holder.headerTextView = (TextView) convertView.findViewById(android.R.id.text1);
-				holder.footerTextView = (TextView) convertView.findViewById(android.R.id.text2);
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder holder;
+            if (convertView == null) {
+                final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                convertView = inflater.inflate(R.layout.list_item_search, parent, false);
+
+                holder = new ViewHolder();
+                holder.headerTextView = (TextView) convertView.findViewById(android.R.id.text1);
+                holder.footerTextView = (TextView) convertView.findViewById(android.R.id.text2);
                 holder.showOnMapButton = (ImageButton) convertView.findViewById(R.id.showOnMapButton);
                 holder.showOnMapButton.setOnClickListener(showOnMapClickListener);
-				convertView.setTag(holder);
-			} else {
-	            holder = (ViewHolder) convertView.getTag();
-			}
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+            }
 
-			final Facility facility = getItem(position);
-			if (facility.getName() != null) {
-				holder.headerTextView.setText(facility.getName());
-			}
-			if (facility.getAddress() != null) {
-				holder.footerTextView.setText(facility.getAddress());
-			}
+            final Facility facility = getItem(position);
+            if (facility.getName() != null) {
+                holder.headerTextView.setText(facility.getName());
+            }
+            if (facility.getAddress() != null) {
+                holder.footerTextView.setText(facility.getAddress());
+            }
             holder.showOnMapButton.setTag(facility);
 
-			return convertView;
-		}
+            return convertView;
+        }
 
         @Override
         public Object[] getSections() {

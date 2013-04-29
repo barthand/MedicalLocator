@@ -55,9 +55,9 @@ import java.util.List;
  * Main {@link Activity} in this application. It's responsible for managing the {@link MapView}.
  */
 public class ActivityMain extends SherlockMapActivity
-implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapListener {
+        implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapListener {
 
-	private static final String TAG = ActivityMain.class.getSimpleName();
+    private static final String TAG = ActivityMain.class.getSimpleName();
 
     /** Stores the identifiers of the Dialogs' keys. */
     private interface DialogKeys {
@@ -72,7 +72,7 @@ implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapList
      */
     private State state;
 
-	/* UI related */
+    /* UI related */
     private MapView mapView;
     private ViewGroup searchControlsViewGroup;
     private Button facilityTypeSearchButton;
@@ -97,15 +97,15 @@ implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapList
 
         @Override
         public void run() {
-        runOnUiThread(new Runnable() {
+            runOnUiThread(new Runnable() {
 
-            @Override
-            public void run() {
-                final MapController mapController = mapView.getController();
-                mapController.animateTo(locationOverlay.getMyLocation());
-            }
-        });
-    }
+                @Override
+                public void run() {
+                    final MapController mapController = mapView.getController();
+                    mapController.animateTo(locationOverlay.getMyLocation());
+                }
+            });
+        }
     };
 
     private final SearchView.OnQueryTextListener queryListener = new SearchView.OnQueryTextListener() {
@@ -146,7 +146,7 @@ implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapList
         }
     };
 
-	/** Called when the activity is first created. */
+    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -169,7 +169,7 @@ implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapList
             }
         });
 
-        this.intentHandlers = new IntentHandler[] { new ShowBubbleIntentHandler(this, mapView) };
+        this.intentHandlers = new IntentHandler[]{new ShowBubbleIntentHandler(this, mapView)};
 
         /* Retrieve the state object if Configuration (f.e. orientation) change occured */
         restoreLastState();
@@ -202,14 +202,14 @@ implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapList
         MyLog.d(TAG, "onResume @ " + this.getClass().getSimpleName());
 
 		/* Register for the Location updates */
-        LocationManagerUtils.register(this, myLocationListener, new String[] {
-                    LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER
+        LocationManagerUtils.register(this, myLocationListener, new String[]{
+                LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER
         });
 
         restoreOverlays();
 
         if (state.daoInitializerAsyncTask == null) {
-			/* Post query job */
+            /* Post query job */
             queryController.attach();
         }
     }
@@ -390,10 +390,10 @@ implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapList
         }
     }
 
-	@Override
-	protected boolean isRouteDisplayed() {
-		return false;
-	}
+    @Override
+    protected boolean isRouteDisplayed() {
+        return false;
+    }
 
     private void restoreOverlays() {
         locationOverlay.enableMyLocation();
@@ -409,16 +409,16 @@ implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapList
         }
     }
 
-	private void supportDataSourceInitialization() {
+    private void supportDataSourceInitialization() {
         if (AsyncTaskUtils.isRunning(state.daoInitializerAsyncTask)) {
-        	state.daoInitializerAsyncTask.setListener(this);
+            state.daoInitializerAsyncTask.setListener(this);
         } else {
             final DataSourceConfigurator dataSourceConfigurator = DataSourceConfigurator.getInstance(getApplicationContext());
-    		if (!dataSourceConfigurator.isConfigured()) {
+            if (!dataSourceConfigurator.isConfigured()) {
                 showDialog(DialogKeys.DATASOURCE_INIT_DIALOG);
-    			state.daoInitializerAsyncTask = new DataSourceConfigurerAsyncTask(dataSourceConfigurator, this);
-    			state.daoInitializerAsyncTask.execute();
-    		}
+                state.daoInitializerAsyncTask = new DataSourceConfigurerAsyncTask(dataSourceConfigurator, this);
+                state.daoInitializerAsyncTask.execute();
+            }
         }
     }
 

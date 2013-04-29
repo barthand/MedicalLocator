@@ -46,12 +46,12 @@ public class SearchCriteria {
     public Set<FacilityType> getAllowedTypes() {
         return allowedTypes;
     }
-    
+
     public void addAllowedType(FacilityType facilityType) {
         lastChangeTimestamp = System.currentTimeMillis();
         allowedTypes.add(facilityType);
     }
-    
+
     public void setChecked(FacilityType facilityType, boolean isChecked) {
         if (isChecked) {
             addAllowedType(facilityType);
@@ -59,7 +59,7 @@ public class SearchCriteria {
             removeAllowedType(facilityType);
         }
     }
-    
+
     public void removeAll() {
         lastChangeTimestamp = System.currentTimeMillis();
         allowedTypes.clear();
@@ -82,7 +82,7 @@ public class SearchCriteria {
 
     public String[] getAllowedTypesLabels(Context context) {
         final String[] labels = new String[allowedTypes.size()];
-        int i=0;
+        int i = 0;
         for (FacilityType type : allowedTypes) {
             labels[i++] = type.getLabel(context);
         }
@@ -92,5 +92,5 @@ public class SearchCriteria {
     public long getLastChangeTimestamp() {
         return lastChangeTimestamp;
     }
-    
+
 }

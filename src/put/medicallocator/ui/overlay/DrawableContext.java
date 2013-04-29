@@ -27,5 +27,5 @@ public class DrawableContext {
     public int getHalfHeight() {
         return halfHeight;
     }
-    
+
 }

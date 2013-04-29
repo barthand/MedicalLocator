@@ -15,7 +15,7 @@ public final class StringUtils {
     public static String join(String[] array, String separator) {
         if (ArrayUtils.isNotEmpty(array)) {
             final StringBuilder builder = new StringBuilder(array[0]);
-            for (int i=1; i<array.length; i++) {
+            for (int i = 1; i < array.length; i++) {
                 builder.append(separator).append(array[i]);
             }
             return builder.toString();

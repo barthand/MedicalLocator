@@ -15,7 +15,7 @@ public class FacilityTypeDrawableCache {
 
     private final Context context;
     private final WeakHashMap<FacilityType, DrawableContext> cache;
-    
+
     public FacilityTypeDrawableCache(Context context) {
         super();
         this.context = context;
@@ -28,12 +28,12 @@ public class FacilityTypeDrawableCache {
      */
     public DrawableContext get(FacilityType type) {
         if (!cache.containsKey(type)) {
-            final Resources resources = context.getResources();  
+            final Resources resources = context.getResources();
             final Drawable drawable = resources.getDrawable(type.getDrawableId());
             final DrawableContext drawableContext = new DrawableContext(drawable);
             cache.put(type, drawableContext);
         }
         return cache.get(type);
     }
-    
+
 }

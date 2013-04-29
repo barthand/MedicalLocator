@@ -37,7 +37,7 @@ public class RouteOverlay extends Overlay {
     private final Paint outerPaint;
 
     /** Collects all the points creating the actual route. */
-	private final ArrayList<GeoPoint> points;
+    private final ArrayList<GeoPoint> points;
 
     /** Cached path instance used to draw the route. */
     private final Path path = new Path();
@@ -72,21 +72,21 @@ public class RouteOverlay extends Overlay {
         this.bitmapCanvas = new Canvas(bitmap);
 
         if (ArrayUtils.isNotEmpty(route.getPoints())) {
-			for (int i = 0; i < route.getPoints().length; i++) {
-				points.add(new GeoPoint(
+            for (int i = 0; i < route.getPoints().length; i++) {
+                points.add(new GeoPoint(
                         (int) (route.getPoints()[i].getLatitude() * 1E6),
-						(int) (route.getPoints()[i].getLongitude() * 1E6)));
-			}
-			int moveToLat = (points.get(0).getLatitudeE6() + (points.get(
-					points.size() - 1).getLatitudeE6() - points.get(0)
-					.getLatitudeE6()) / 2);
-			int moveToLong = (points.get(0).getLongitudeE6() + (points.get(
-					points.size() - 1).getLongitudeE6() - points.get(0)
-					.getLongitudeE6()) / 2);
-			GeoPoint moveTo = new GeoPoint(moveToLat, moveToLong);
+                        (int) (route.getPoints()[i].getLongitude() * 1E6)));
+            }
+            int moveToLat = (points.get(0).getLatitudeE6() + (points.get(
+                    points.size() - 1).getLatitudeE6() - points.get(0)
+                    .getLatitudeE6()) / 2);
+            int moveToLong = (points.get(0).getLongitudeE6() + (points.get(
+                    points.size() - 1).getLongitudeE6() - points.get(0)
+                    .getLongitudeE6()) / 2);
+            GeoPoint moveTo = new GeoPoint(moveToLat, moveToLong);
 
-			MapController mapController = mv.getController();
-			mapController.animateTo(moveTo);
+            MapController mapController = mv.getController();
+            mapController.animateTo(moveTo);
 
             innerPaint.setColor(0x28D7FF);
             innerPaint.setStyle(Paint.Style.STROKE);
@@ -96,13 +96,13 @@ public class RouteOverlay extends Overlay {
 
             outerPaint.setColor(0x1E9AFF);
             outerPaint.setStyle(Paint.Style.STROKE);
-            outerPaint.setStrokeWidth(INNER_LINE_WIDTH *2);
+            outerPaint.setStrokeWidth(INNER_LINE_WIDTH * 2);
             outerPaint.setAntiAlias(true);
             outerPaint.setAlpha(0xAB);
         }
 
         MyLog.d(TAG, "Initializion done");
-	}
+    }
 
     @Override
     public void draw(Canvas canvas, MapView mapView, boolean shadow) {
@@ -128,11 +128,11 @@ public class RouteOverlay extends Overlay {
      * Builds the route {@link Path}, if required (if zoom changed or if path is built for the first time).
      * Otherwise, calculates the offset to be used to draw previously created {@link Path}.
      */
-	public Path buildPath(MapView mapView) {
+    public Path buildPath(MapView mapView) {
         final Projection projection = mapView.getProjection();
         if (points.size() > 1) {
             projection.toPixels(points.get(0), point);
-            final int currentLongitudeSpan = projection.fromPixels(0, mapView.getHeight()/2).getLongitudeE6() - projection.fromPixels(mapView.getWidth(), mapView.getHeight()/2).getLongitudeE6();
+            final int currentLongitudeSpan = projection.fromPixels(0, mapView.getHeight() / 2).getLongitudeE6() - projection.fromPixels(mapView.getWidth(), mapView.getHeight() / 2).getLongitudeE6();
             if (currentLongitudeSpan == lastLongitudeSpan) {
                 // For some reason, offsetting the path doesn't work on the HTC One X, 4.1.1. It's GPU accelerated,
                 // but Nexus 7 (also accelerated) works just fine. For this reason, Canvas is translated.
@@ -153,6 +153,6 @@ public class RouteOverlay extends Overlay {
         }
 
         return path;
-	}
+    }
 
 }

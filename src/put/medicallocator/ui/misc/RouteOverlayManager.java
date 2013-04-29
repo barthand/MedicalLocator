@@ -27,14 +27,14 @@ public class RouteOverlayManager {
     /**
      * Creates the {@link RouteOverlay} and shows it on the {@link MapView}.
      */
-	public void showRoute(RouteSpec route) {
+    public void showRoute(RouteSpec route) {
         List<Overlay> listOfOverlays = mapView.getOverlays();
         listOfOverlays.remove(routeOverlay);
         buildOverlay(route);
         state.routeSpec = route;
         listOfOverlays.add(routeOverlay);
         mapView.invalidate();
-	}
+    }
 
     private void buildOverlay(RouteSpec route) {
         this.routeOverlay = new RouteOverlay(route, mapView);

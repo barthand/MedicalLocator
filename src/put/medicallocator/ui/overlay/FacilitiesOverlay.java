@@ -31,16 +31,16 @@ public class FacilitiesOverlay extends Overlay {
      *   * query all markers on startup and keep them in the memory,
      *   * if too much memory needed, group more markers in one go,
      */
-    
+
     private static final String TAG = FacilitiesOverlay.class.getSimpleName();
-    
+
     private final List<Facility> source;
     private final FacilityTypeDrawableCache drawableCache;
     private final FacilityTapListener tapListener;
     private final FacilityLookupStrategy lookupStrategy;
-    
+
     private int lastTouchAction;
-    
+
     FacilitiesOverlay(List<Facility> source, FacilityTypeDrawableCache drawableCache, FacilityLookupStrategy lookupStrategy, FacilityTapListener listener) {
         this.source = source;
         this.drawableCache = drawableCache;
@@ -64,14 +64,14 @@ public class FacilitiesOverlay extends Overlay {
 
         for (Facility facility : source) {
             projection.toPixels(facility.getLocation(), point);
-            
+
             final DrawableContext drawableContext = drawableCache.get(facility.getFacilityType());
             final Drawable drawable = drawableContext.drawable;
             drawable.setBounds(point.x - drawableContext.halfWidth, point.y - drawableContext.halfHeight,
                     point.x + drawableContext.halfWidth, point.y + drawableContext.halfHeight);
             drawable.draw(canvas);
         }
-        
+
     }
 
     @Override
@@ -79,11 +79,11 @@ public class FacilitiesOverlay extends Overlay {
         if (lastTouchAction != MotionEvent.ACTION_UP) {
             return false;
         }
-        
+
         final long start = System.currentTimeMillis();
-        
+
         final Facility facility = lookupStrategy.findNearestFacility(p, mapView.getProjection());
-        
+
         final long end = System.currentTimeMillis();
         MyLog.d(TAG, "Finding nearest facility took " + (end - start) + "ms");
 
@@ -94,7 +94,7 @@ public class FacilitiesOverlay extends Overlay {
         }
         return false;
     }
-    
+
     @Override
     public boolean onTouchEvent(MotionEvent e, MapView mapView) {
         this.lastTouchAction = e.getAction();
