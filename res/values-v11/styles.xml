@@ -1,7 +1,0 @@
-<resources>
-
-    <style name="Theme.MedicalLocator" parent="android:Theme.Holo.Light" />
-
-    <style name="CheckBoxStyle"/>
-    
-</resources>

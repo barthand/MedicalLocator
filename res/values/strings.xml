@@ -5,6 +5,7 @@
     <string name="activitymain_initializing_provider">Initializing Data Provider. Please wait a moment..</string>
     <string name="activitymain_search">Search</string>
     <string name="activitymain_enabletracking">Enable position tracking</string>
+    <string name="activitymain_disabletracking">Disable position tracking</string>
     <string name="activitymain_about">About</string>
     <string name="activitymain_search_hint">Search on map</string>
     <string name="activitymain_selectall">Select all</string>
@@ -23,7 +24,8 @@
     <string name="search_hint">What are you looking for?</string>
     
     <string name="activitymain_loading">Loading..</string>
-    
+    <string name="activitymain_type_filter_all_enabled">Any type..</string>
+
     <string name="facilitytype_centre">Centre</string>
     <string name="facilitytype_dentist">Dentist</string>
     <string name="facilitytype_eye_doctor">Eye doctor</string>

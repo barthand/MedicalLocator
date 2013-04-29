@@ -1,8 +1,6 @@
 # Medical Locator
 
-This Android (1.6+) platform application allows you to search for a medical facilities near you and show them on the map.
-
-*Please keep in mind that it is currently a **beta-version** and almost certainly some things don't work properly yet.*
+This Android (1.6+) platform application gives you ability to search for a medical facilities near you.
 
 ## Available features
 
@@ -32,6 +30,10 @@ This Android (1.6+) platform application allows you to search for a medical faci
 * Android smartphone using AndroidOS 1.6 or higher, with the Geolocation module (Cellular Network or GPS)
 * for best experience, the faster the phone is the better UI responsiveness is achieved (use *Filters* to restrict result set)
 
-## Further information
+## Libraries used
 
-It will come, sooner or later.
+* [ActionBarSherlock](http://actionbarsherlock.com/)
+* [NineOldAndroids](http://nineoldandroids.com/)
+* [gson](http://code.google.com/p/google-gson/)
+
+Thanks for the authors!

@@ -5,10 +5,49 @@
     android:orientation="horizontal"
     android:paddingTop="0dip"
     android:paddingBottom="0dip"
-    android:paddingRight="2dip"
-    style="@style/ListItem">
-    <LinearLayout android:layout_height="fill_parent" android:layout_width="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical">
-        <TextView android:text="TextView" android:layout_height="wrap_content" android:id="@android:id/text1" android:layout_width="fill_parent" android:textAppearance="?android:attr/textAppearanceMedium" android:ellipsize="marquee" android:lines="1" android:scrollHorizontally="true"></TextView>
-        <TextView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@android:id/text2" android:textColor="@color/color_list_item_footer" android:textAppearance="?android:attr/textAppearanceSmall" android:ellipsize="marquee" android:lines="1" android:scrollHorizontally="true"></TextView>
+    style="@style/ListItem"
+    android:gravity="center_vertical"
+    android:descendantFocusability="blocksDescendants">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:baselineAligned="false">
+
+        <TextView
+            android:id="@android:id/text1"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:ellipsize="marquee"
+            android:lines="1"
+            android:scrollHorizontally="true"/>
+
+        <TextView
+            android:id="@android:id/text2"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:textColor="@color/color_list_item_footer"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:ellipsize="marquee"
+            android:lines="1"
+            android:scrollHorizontally="true"/>
     </LinearLayout>
+
+    <View
+        android:layout_height="fill_parent"
+        android:layout_width="1px"
+        android:background="@color/view_separator"/>
+
+    <ImageButton
+        android:id="@+id/showOnMapButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginLeft="5dp"
+        android:contentDescription="description"
+        android:src="@android:drawable/arrow_up_float"/>
+
 </LinearLayout>

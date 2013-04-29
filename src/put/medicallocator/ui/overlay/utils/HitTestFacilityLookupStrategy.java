@@ -1,26 +1,30 @@
 package put.medicallocator.ui.overlay.utils;
 
-import java.util.List;
-
-import put.medicallocator.io.model.Facility;
-import put.medicallocator.ui.overlay.DrawableCache;
-import put.medicallocator.ui.overlay.DrawableContext;
 import android.graphics.Point;
 import android.graphics.Rect;
-
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Projection;
+import put.medicallocator.io.model.Facility;
+import put.medicallocator.ui.overlay.DrawableContext;
+import put.medicallocator.ui.overlay.FacilityTypeDrawableCache;
 
+import java.util.List;
+
+/**
+ * Implementation of {@link FacilityLookupStrategy} iterating over all the {@link Facility}
+ * and, based on the {@link DrawableContext}s associated with them, checking whether the selected point is within the
+ * area of the marker drawn for certain {@link Facility}.
+ */
 public class HitTestFacilityLookupStrategy implements FacilityLookupStrategy {
 
     private final List<Facility> source;
-    private final DrawableCache drawableCache;
+    private final FacilityTypeDrawableCache drawableCache;
     
     private final Point facilityOutPoint = new Point();
     private final Point targetOutPoint = new Point();
     private final Rect rect = new Rect();
 
-    public HitTestFacilityLookupStrategy(List<Facility> source, DrawableCache drawableCache) {
+    public HitTestFacilityLookupStrategy(List<Facility> source, FacilityTypeDrawableCache drawableCache) {
         this.source = source;
         this.drawableCache = drawableCache;
     }

@@ -1,334 +1,393 @@
 package put.medicallocator.ui;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import put.medicallocator.R;
-import put.medicallocator.io.helper.FacilityDAOHelper;
-import put.medicallocator.io.model.Facility;
-import put.medicallocator.io.model.FacilityType;
-import put.medicallocator.io.route.Route;
-import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListener;
-import put.medicallocator.ui.async.DataSourceInitializerAsyncTask;
-import put.medicallocator.ui.async.DataSourceInitializerAsyncTask.DataSourceInitializerListener;
-import put.medicallocator.ui.async.QueryManager;
-import put.medicallocator.ui.location.MapLocationListener;
-import put.medicallocator.ui.misc.FacilityTypeInflateStrategy;
-import put.medicallocator.ui.misc.LandscapeFacilityTypeInflateStrategy;
-import put.medicallocator.ui.misc.PortraitFacilityTypeInflateStrategy;
-import put.medicallocator.ui.overlay.FacilitiesOverlay;
-import put.medicallocator.ui.overlay.FaciltiesOverlayBuilder;
-import put.medicallocator.ui.overlay.RouteOverlay;
-import put.medicallocator.ui.overlay.utils.FacilityTapListener;
-import put.medicallocator.ui.utils.FacilityDialogUtils;
-import put.medicallocator.ui.utils.State;
-import put.medicallocator.utils.MyLog;
-import android.annotation.TargetApi;
-import android.app.AlertDialog;
+import android.app.Activity;
 import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.res.Configuration;
+import android.app.SearchManager;
+import android.content.Intent;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.SlidingDrawer;
-import android.widget.TextView;
-
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapActivity;
+import android.view.ViewGroup;
+import android.widget.Button;
+import com.actionbarsherlock.app.SherlockMapActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.Window;
+import com.actionbarsherlock.widget.SearchView;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
+import put.medicallocator.R;
+import put.medicallocator.io.helper.DataSourceConfigurator;
+import put.medicallocator.io.model.Facility;
+import put.medicallocator.io.model.FacilityType;
+import put.medicallocator.ui.animation.InOutAnimationController;
+import put.medicallocator.ui.animation.SlideInOutAnimationController;
+import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListener;
+import put.medicallocator.ui.async.DataSourceConfigurerAsyncTask;
+import put.medicallocator.ui.async.DataSourceConfigurerAsyncTask.DataSourceInitializerListener;
+import put.medicallocator.ui.async.QueryController;
+import put.medicallocator.ui.dialogs.AboutDialogFactory;
+import put.medicallocator.ui.dialogs.DataSourceConfigurationDialogFactory;
+import put.medicallocator.ui.dialogs.FacilityDialogFactory;
+import put.medicallocator.ui.dialogs.FacilityTypeChooserDialogFactory;
+import put.medicallocator.ui.intent.IntentHandler;
+import put.medicallocator.ui.intent.ShowBubbleIntentHandler;
+import put.medicallocator.ui.location.MapLocationListener;
+import put.medicallocator.ui.misc.RouteOverlayManager;
+import put.medicallocator.ui.overlay.FaciltiesOverlayBuilder;
+import put.medicallocator.ui.overlay.utils.FacilityTapListener;
+import put.medicallocator.ui.utils.State;
+import put.medicallocator.utils.AsyncTaskUtils;
+import put.medicallocator.utils.LocationManagerUtils;
+import put.medicallocator.utils.MyLog;
+import put.medicallocator.utils.StringUtils;
 
-public class ActivityMain extends MapActivity implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapListener {
+import java.util.List;
 
-	private static final String TAG = ActivityMain.class.getName();
+// TODO: Close DB connection, since it leaks from time to time.
+// TODO: Roboguice?
+// TODO: Consider OverlayManager
 
-	/* IDs of the Dialogs */
-	private static final int ID_DIALOG_INITIALIZE_DAO = 1;
+/**
+ * Main {@link Activity} in this application. It's responsible for managing the {@link MapView}.
+ */
+public class ActivityMain extends SherlockMapActivity
+implements DataSourceInitializerListener, FacilityQueryListener, FacilityTapListener {
 
+	private static final String TAG = ActivityMain.class.getSimpleName();
+
+    /** Stores the identifiers of the Dialogs' keys. */
+    private interface DialogKeys {
+        int DATASOURCE_INIT_DIALOG = 1;
+        int ABOUT_DIALOG = 2;
+        int FACILITY_TYPE_CHOOSER_DIALOG = 3;
+    }
+
+    /**
+     * Stores the {@link State} of this activity. It is used every time configuration change occurs
+     * (like orientation change).
+     */
     private State state;
 
 	/* UI related */
     private MapView mapView;
-    private SlidingDrawer slidingDrawer;
-    private TextView selectAllOrNoneTextView;
-    private ImageButton selectAllOrNoneButton;
+    private ViewGroup searchControlsViewGroup;
+    private Button facilityTypeSearchButton;
+
+    /**
+     * Array of the {@link IntentHandler}s, iterated over to find the proper {@link IntentHandler} for particular
+     * {@link Intent}.
+     */
+    private IntentHandler[] intentHandlers;
+
+    private InOutAnimationController searchInOutAnimationController;
+
     private MyLocationOverlay locationOverlay;
-    private RouteOverlay routeOverlay;
-    
+
     private LocationListener myLocationListener;
 
-    private FacilityTypeInflateStrategy typeInflateStrategy;
+    private QueryController queryController;
 
-    private QueryManager queryManager;
-   
-    private RouteHandler routeHandler;
-    
-    private final OnCheckedChangeListener filterComboBoxCheckedChangeListener = new OnCheckedChangeListener() {
-        
+    private RouteOverlayManager routeOverlayManager;
+
+    private final Runnable onFirstFixRunnable = new Runnable() {
+
         @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            final FacilityType type = (FacilityType) buttonView.getTag();
-            MyLog.d(TAG, type + " isChecked [" + isChecked + "]");
-            if (isChecked) {
-                state.criteria.addAllowedType(type);
-            } else {
-                state.criteria.removeAllowedType(type);
+        public void run() {
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                final MapController mapController = mapView.getController();
+                mapController.animateTo(locationOverlay.getMyLocation());
             }
-            // Check if button is already prepared. It may be null at this point, at onCreate().
-            if (selectAllOrNoneButton != null) {
-                updateSelectAllOrNoneButton(false);
-            }
+        });
+    }
+    };
+
+    private final SearchView.OnQueryTextListener queryListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            return false;
+        }
+
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            state.criteria.setQuery(newText);
+            return true;
         }
     };
-    
+
+    private final SearchView.OnQueryTextListener listQueryListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            final Intent intent = new Intent(Intent.ACTION_SEARCH, null, getApplicationContext(), ActivitySearchable.class);
+            intent.putExtra(SearchManager.QUERY, query);
+            startActivity(intent);
+            return true;
+        }
+
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            return false;
+        }
+    };
+
+
+    private FacilityTypeChooserDialogFactory.OnFacilitiesTypesSelectedListener facilitiesTypesSelectedListener = new FacilityTypeChooserDialogFactory.OnFacilitiesTypesSelectedListener() {
+        @Override
+        public void onTypesSelected(List<FacilityType> types, String[] labels) {
+            state.criteria.setAllowedTypes(types);
+            updateChosenTypesButton();
+            removeDialog(DialogKeys.FACILITY_TYPE_CHOOSER_DIALOG);
+        }
+    };
+
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
         MyLog.d(TAG, "onCreate @ " + this.getClass().getSimpleName());
-
-		/* Do we have previous instance data? */
-        if (getLastNonConfigurationInstance() instanceof State) {
-        	this.state = (State) getLastNonConfigurationInstance();
-        } else {
-            final Set<FacilityType> allowedTypes = new HashSet<FacilityType>();
-            allowedTypes.addAll(Arrays.asList(FacilityType.values()));
-
-            this.state = new State();
-            this.state.criteria.setAllowedTypes(allowedTypes);
-		}
-
-        /* Ensure that DataSource is prepared and current */
-    	checkDataSource();
 
     	/* Prepare the UI */
         setContentView(R.layout.activity_main);
-        this.slidingDrawer = (SlidingDrawer) findViewById(R.id.drawer);
+
+        /* Cache the views */
         this.mapView = (MapView) findViewById(R.id.map_view);
-        initializeMapView();
-
-        /* Initialize a handlers here to ensure that they're attached to the UI thread */
-        this.queryManager = new QueryManager(getApplicationContext(), mapView, this.state.criteria, this);
-        this.routeHandler = new RouteHandler();
-
-        this.locationOverlay = new MyLocationOverlay(this, mapView);
-        this.myLocationListener = new MapLocationListener(mapView, routeHandler, state);
-        this.routeOverlay = state.routeOverlay;
-
-        final CheckBox trackingCheckBox = (CheckBox) findViewById(R.id.trackingCheckBox);
-        trackingCheckBox.setChecked(state.isTrackingEnabled);
-        trackingCheckBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                toggleLocationTracking(buttonView);
-            }
-        });
-        
-        final EditText queryEditText = (EditText) this.slidingDrawer.findViewById(R.id.queryEditText);
-        queryEditText.addTextChangedListener(new TextWatcher() {
-            
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-            
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-            
-            @Override
-            public void afterTextChanged(Editable s) {
-                state.criteria.setQuery(s.toString());
-            }
-        });
-        final ImageButton clearQueryButton = (ImageButton) this.slidingDrawer.findViewById(R.id.clearQueryButton);
-        clearQueryButton.setOnClickListener(new OnClickListener() {
-
+        this.searchControlsViewGroup = (ViewGroup) findViewById(R.id.search_controls_viewgroup);
+        this.facilityTypeSearchButton = (Button) findViewById(R.id.facilitytype_spinner);
+        this.facilityTypeSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                queryEditText.setText("");
+                showDialog(DialogKeys.FACILITY_TYPE_CHOOSER_DIALOG);
             }
-            
         });
-        
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            typeInflateStrategy = new LandscapeFacilityTypeInflateStrategy(this, R.id.typesGridView);
-        } else {
-            typeInflateStrategy = new PortraitFacilityTypeInflateStrategy(this, R.id.drawer_filters_viewgroup);
-        }
 
-        typeInflateStrategy.inflate(filterComboBoxCheckedChangeListener);
-        typeInflateStrategy.updateState(state.criteria);
-        
-        selectAllOrNoneButton = (ImageButton) findViewById(R.id.typesSelectAllOrNone);
-        selectAllOrNoneTextView = (TextView) findViewById(R.id.typesSelectAllOrNoneText);
-        updateSelectAllOrNoneButton(false);
+        this.intentHandlers = new IntentHandler[] { new ShowBubbleIntentHandler(this, mapView) };
+
+        /* Retrieve the state object if Configuration (f.e. orientation) change occured */
+        restoreLastState();
+
+        /* Ensure that DataSource is prepared and current */
+        supportDataSourceInitialization();
+
+        this.searchInOutAnimationController = new SlideInOutAnimationController(searchControlsViewGroup);
+
+        /* Do view initialization */
+        initializeMapView(this.mapView, this.state);
+
+        /* Do other structures initialization*/
+        this.queryController = new QueryController(getApplicationContext(), mapView, this.state.criteria, this);
+        this.routeOverlayManager = new RouteOverlayManager(mapView, state);
+
+        this.locationOverlay = new MyLocationOverlay(this, mapView);
+        this.myLocationListener = new MapLocationListener(mapView, state);
+
+        setSupportProgressBarIndeterminate(true);
+        getSherlock().setProgressBarIndeterminateVisibility(true);
+
+        updateChosenTypesButton();
     }
-
-    private void initializeMapView() {
-		mapView.setBuiltInZoomControls(true);
-
-		final MapController mapController = mapView.getController();
-		mapController.setCenter(state.currentPoint);
-		mapController.setZoom(state.zoomLevel);
-	}
 
     @Override
     protected void onResume() {
-    	super.onResume();
+        super.onResume();
 
         MyLog.d(TAG, "onResume @ " + this.getClass().getSimpleName());
 
 		/* Register for the Location updates */
-        registerLocationListener();
+        LocationManagerUtils.register(this, myLocationListener, new String[] {
+                    LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER
+        });
 
-        /* Enable the MyLocationOverlay as well */
-        locationOverlay.enableMyLocation();
-        locationOverlay.runOnFirstFix(onFirstFixRunnable);
-		mapView.getOverlays().add(locationOverlay);
-		if (routeOverlay != null) {
-			mapView.getOverlays().add(routeOverlay);
-		}
+        restoreOverlays();
 
-		if (state.daoInitializerAsyncTask == null) {
+        if (state.daoInitializerAsyncTask == null) {
 			/* Post query job */
-			queryManager.makeFirstQuery();
-		}
-	}
+            queryController.attach();
+        }
+    }
 
-	@Override
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        for (IntentHandler handler : intentHandlers) {
+            if (handler.supports(intent)) {
+                handler.process(intent);
+            }
+        }
+    }
+
+    @Override
     protected void onPause() {
-    	super.onPause();
+        super.onPause();
 
         MyLog.d(TAG, "onPause @ " + this.getClass().getSimpleName());
 
     	/* Unregister for the Location updates */
-    	final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-    	locationManager.removeUpdates(myLocationListener);
+        LocationManagerUtils.unregister(this, myLocationListener);
 
         /* Disable the MyLocationOverlay as well */
-    	locationOverlay.disableMyLocation();
+        locationOverlay.disableMyLocation();
 
     	/* Disable querying */
-    	queryManager.onPause();
+        queryController.detach();
     }
 
-	@Override
-	protected void onDestroy() {
+    @Override
+    protected void onDestroy() {
         MyLog.d(TAG, "onDestroy @ " + this.getClass().getSimpleName());
-        queryManager.onDestroy();
-		super.onDestroy();
-	}
-	
-    @Override
-    @TargetApi(Build.VERSION_CODES.ECLAIR)
-	public void onBackPressed() {
-        if (slidingDrawer.isOpened()) {
-            slidingDrawer.animateClose();
-        } else {
-            finish();
-        }
+        queryController.onDestroy();
+        super.onDestroy();
     }
-    
-	@TargetApi(Build.VERSION_CODES.ECLAIR) // @TargetApi is dumb, it shouldn't be required here, since we override onBackPressed.
+
     @Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-	    if (Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.ECLAIR
-	            && keyCode == KeyEvent.KEYCODE_BACK
-	            && event.getRepeatCount() == 0) {
-	        onBackPressed();
-	        return true;
-	    }
-	    return super.onKeyDown(keyCode, event);
-	}
-	
-	private void updateSelectAllOrNoneButton(boolean updateState) {
-        if (state.criteria.getAllowedTypes().size() != FacilityType.values().length) {
-            if (selectAllOrNoneTextView != null) {
-                selectAllOrNoneTextView.setText(getResources().getString(R.string.activitymain_selectall));
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getSupportMenuInflater().inflate(R.menu.menu_main, menu);
+
+        final MenuItem menuSearchItem = menu.findItem(R.id.menu_search_command);
+        final SearchView mapQuerySearchView = (SearchView) menuSearchItem.getActionView();
+        final SearchView listQuerySearchView = (SearchView) menu.findItem(R.id.menu_search_list_command).getActionView();
+
+        menuSearchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                searchInOutAnimationController.animateIn();
+                return true;
             }
-            selectAllOrNoneButton.setImageResource(R.drawable.btn_check_on_dark);
-        } else {
-            if (selectAllOrNoneTextView != null) {
-                selectAllOrNoneTextView.setText(getResources().getString(R.string.activitymain_deselectall));
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                searchInOutAnimationController.animateOut();
+                return true;
             }
-            selectAllOrNoneButton.setImageResource(R.drawable.btn_check_off_dark);
+        });
+        mapQuerySearchView.setOnQueryTextListener(queryListener);
+        listQuerySearchView.setOnQueryTextListener(listQueryListener);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+
+        final MenuItem item = menu.findItem(R.id.menu_toggle_tracking);
+        final int resourceId = state.isTrackingEnabled ? R.string.activitymain_disabletracking : R.string.activitymain_enabletracking;
+        item.setTitle(getString(resourceId));
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_search_command:
+                return true;
+            case R.id.menu_about_command:
+                showDialog(DialogKeys.ABOUT_DIALOG);
+                return true;
+            case R.id.menu_toggle_tracking:
+                state.isTrackingEnabled = !state.isTrackingEnabled;
+                return true;
         }
-        if (updateState) {
-            typeInflateStrategy.updateState(state.criteria);
+        return super.onOptionsItemSelected(item);
+    }
+
+    // TODO: Change to (int, Bundle) version and provide parameters?
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        switch (id) {
+            case DialogKeys.DATASOURCE_INIT_DIALOG:
+                return new DataSourceConfigurationDialogFactory().createDialog(this);
+            case DialogKeys.ABOUT_DIALOG:
+                return new AboutDialogFactory().createDialog(this);
+            case DialogKeys.FACILITY_TYPE_CHOOSER_DIALOG:
+                return new FacilityTypeChooserDialogFactory(state.criteria, facilitiesTypesSelectedListener).createDialog(this);
         }
-	}
-	
-	public void onSelectAllOrNoneTypes(View v) {
-	    if (state.criteria.getAllowedTypes().size() == FacilityType.values().length) {
-	        state.criteria.getAllowedTypes().clear();
-	    } else {
-	        state.criteria.getAllowedTypes().addAll(Arrays.asList(FacilityType.values()));
-	    }
-	    updateSelectAllOrNoneButton(true);
-	}
-	
-	@Override
-	protected Dialog onCreateDialog(int id) {
-		switch (id) {
-			case ID_DIALOG_INITIALIZE_DAO:
-				final ProgressDialog dialog = new ProgressDialog(this);
-				dialog.setMessage(getString(R.string.activitymain_initializing_provider));
-				return dialog;
-		}
-		return super.onCreateDialog(id);
-	}
+        return super.onCreateDialog(id);
+    }
 
     @Override
     public Object onRetainNonConfigurationInstance() {
-    	state.currentPoint = mapView.getMapCenter();
-    	state.zoomLevel = mapView.getZoomLevel();
-    	state.routeOverlay = routeOverlay;
-    	return state;
+        state.currentPoint = mapView.getMapCenter();
+        state.zoomLevel = mapView.getZoomLevel();
+        for (IntentHandler handler : intentHandlers) {
+            state.intentHandlersState.put(handler.getClass(), handler.retainState());
+        }
+        return state;
     }
 
-    public void onShowAboutClicked(View v) {
-        showAbout();
+    protected void restoreLastState() {
+        if (getLastNonConfigurationInstance() instanceof State) {
+            this.state = (State) getLastNonConfigurationInstance();
+            for (IntentHandler handler : intentHandlers) {
+                final Object handlerState = state.intentHandlersState.get(handler.getClass());
+                if (handlerState != null) {
+                    handler.restoreState(handlerState);
+                }
+            }
+        } else {
+            this.state = new State();
+        }
     }
-    
-    public void onSearchClicked(View v) {
-        onSearchRequested();
+
+    private void initializeMapView(MapView mapView, State state) {
+        mapView.setBuiltInZoomControls(false);
+
+        final MapController mapController = mapView.getController();
+        mapController.setCenter(state.currentPoint);
+        mapController.setZoom(state.zoomLevel);
     }
-    
-    public void toggleLocationTracking(View v) {
-        state.isTrackingEnabled = !state.isTrackingEnabled;
-    }
-    
-	@Override
+
+    @Override
     public void onFacilityTap(Facility facility) {
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        new FacilityDialogFactory(this, facility, routeOverlayManager).createDialog(this).show();
+    }
 
-        final FacilityDialogUtils dialogUtils = new FacilityDialogUtils(this, facility, inflater);
-        final AlertDialog dialog = dialogUtils.createFacilityDialog(routeHandler);
-        dialog.show();
+    @Override
+    public void onAsyncFacilityQueryStarted() {
+        getSherlock().setProgressBarIndeterminateVisibility(true);
+    }
+
+    @Override
+    public void onAsyncFacilityQueryCompleted(List<Facility> result) {
+        MyLog.i(TAG, "Query finished. Returned rows: " + result.size());
+
+        final List<Overlay> overlays = mapView.getOverlays();
+        overlays.clear();
+        if (result.size() == 0) {
+            MyLog.d(TAG, "Removing overlays from the MapView");
+            overlays.add(locationOverlay);
+        } else {
+            overlays.add(new FaciltiesOverlayBuilder(this).buildOverlay(result, this));
+            overlays.add(locationOverlay);
+            if (state.routeSpec != null) {
+                overlays.add(routeOverlayManager.getOrRestoreRoute(state.routeSpec));
+            }
+        }
+
+        MyLog.d(TAG, "Posting invalidate on MapView");
+        mapView.invalidate();
+        getSherlock().setProgressBarIndeterminateVisibility(false);
+    }
+
+    @Override
+    public void onDatabaseInitialized(boolean success) {
+        state.daoInitializerAsyncTask = null;
+        if (success) {
+            dismissDialog(DialogKeys.DATASOURCE_INIT_DIALOG);
+            queryController.attach();
+        } else {
+            // Not good, we encountered a real FATAL error..
+            // TODO: Push information to the user.
+        }
     }
 
 	@Override
@@ -336,141 +395,31 @@ public class ActivityMain extends MapActivity implements DataSourceInitializerLi
 		return false;
 	}
 
-	private void checkDataSource() {
-        final DataSourceInitializerAsyncTask retrievedAsyncTask = state.daoInitializerAsyncTask;
-        if (retrievedAsyncTask != null && retrievedAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
-        	retrievedAsyncTask.setListener(this);
-        } else { 
-            final FacilityDAOHelper daoHelper = FacilityDAOHelper.getInstance(getApplicationContext());
-    		if (!daoHelper.isDataPrepared()) {
-                showDialog(ID_DIALOG_INITIALIZE_DAO);
-    			state.daoInitializerAsyncTask = new DataSourceInitializerAsyncTask(daoHelper, this);;
+    private void restoreOverlays() {
+        locationOverlay.enableMyLocation();
+        locationOverlay.runOnFirstFix(onFirstFixRunnable);
+        mapView.getOverlays().add(locationOverlay);
+    }
+
+    private void updateChosenTypesButton() {
+        if (state.criteria.isEverythingAllowed()) {
+            facilityTypeSearchButton.setText(getString(R.string.activitymain_type_filter_all_enabled));
+        } else {
+            facilityTypeSearchButton.setText(StringUtils.join(state.criteria.getAllowedTypesLabels(this), ", "));
+        }
+    }
+
+	private void supportDataSourceInitialization() {
+        if (AsyncTaskUtils.isRunning(state.daoInitializerAsyncTask)) {
+        	state.daoInitializerAsyncTask.setListener(this);
+        } else {
+            final DataSourceConfigurator dataSourceConfigurator = DataSourceConfigurator.getInstance(getApplicationContext());
+    		if (!dataSourceConfigurator.isConfigured()) {
+                showDialog(DialogKeys.DATASOURCE_INIT_DIALOG);
+    			state.daoInitializerAsyncTask = new DataSourceConfigurerAsyncTask(dataSourceConfigurator, this);
     			state.daoInitializerAsyncTask.execute();
     		}
         }
     }
 
-	private final Runnable onFirstFixRunnable = new Runnable() {
-
-		@Override
-        public void run() {
-			runOnUiThread(new Runnable() {
-
-				@Override
-                public void run() {
-					final MapController mapController = mapView.getController();
-					mapController.animateTo(locationOverlay.getMyLocation());
-				}
-			});
-		}
-	};
-
-	private void registerLocationListener() {
-		final LocationManager locationManager =
-	    	(LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-	    locationManager.requestLocationUpdates(
-	        LocationManager.GPS_PROVIDER,
-	        0,
-	        0,
-	        myLocationListener);
-
-	    locationManager.requestLocationUpdates(
-	        LocationManager.NETWORK_PROVIDER,
-	        0,
-	        0,
-	        myLocationListener);
-	}
-
-	private void showAbout() {
-		LayoutInflater inflater = getLayoutInflater();
-		View layout = inflater.inflate(R.layout.dialog_about, null);
-
-		try {
-			String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-			String version = String.format(getString(R.string.app_version), versionName);
-			final TextView versionTextView = (TextView) layout.findViewById(R.id.dialogabout_appversion);
-			versionTextView.setText(version);
-		} catch (NameNotFoundException e) {
-			// No version found, not critical..
-		}
-
-		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setView(layout);
-		final AlertDialog dialog = builder.create();
-		dialog.setTitle(getString(R.string.app_name));
-		dialog.show();
-	}
-
-	public class RouteHandler extends Handler {
-		private Route route;
-		private GeoPoint currentLocation;
-
-		public void setRoute(Route route) {
-	        this.route = route;
-		}
-
-		public void setCurrentLocation(GeoPoint location) {
-			currentLocation = location;
-		}
-
-		public GeoPoint getCurrentLocation() {
-			return currentLocation;
-		}
-
-		@Override
-		public void handleMessage(Message msg) {
-            List<Overlay> listOfOverlays = mapView.getOverlays();
-            listOfOverlays.remove(routeOverlay);
-            routeOverlay = new RouteOverlay(route, mapView);
-            listOfOverlays.add(routeOverlay);
-            mapView.invalidate();
-		}
-
-	}
-	
-	@Override
-    public void onDatabaseInitialized(boolean success) {
-	    state.daoInitializerAsyncTask = null;
-		if (success) {
-			dismissDialog(ID_DIALOG_INITIALIZE_DAO);
-			queryManager.makeFirstQuery();
-		} else {
-			// Not good, we encountered a real FATAL error..
-			// TODO: Push information to the user.
-		}
-	}
-
-	@Override
-	public void onAsyncFacilityQueryStarted() {
-	    findViewById(R.id.loadingViewGroup).setVisibility(View.VISIBLE);	    
-	}
-	
-    @Override
-    public void onAsyncFacilityQueryCompleted(List<Facility> result) {
-        findViewById(R.id.loadingViewGroup).setVisibility(View.GONE);
-        MyLog.e(TAG, "Query finished. Returned rows: " + result.size());
-
-        if (result.size() == 0) {
-            MyLog.d(TAG, "Removing overlays from the MapView");
-            final List<Overlay> overlays = mapView.getOverlays();
-            overlays.clear();
-            overlays.add(locationOverlay);
-        } else {
-            final FacilitiesOverlay overlay = new FaciltiesOverlayBuilder(this).buildOverlay(result, this);
-
-            final List<Overlay> overlays = mapView.getOverlays();
-            overlays.clear();
-
-            overlays.add(overlay);
-            overlays.add(locationOverlay);
-            if (routeOverlay != null) {
-                overlays.add(routeOverlay);
-            }
-        }
-
-        MyLog.d(TAG, "Posting invalidate on MapView");
-        mapView.invalidate();
-    }
-    
 }

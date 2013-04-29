@@ -1,11 +1,10 @@
 package put.medicallocator.io.sqlite;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import com.google.android.maps.GeoPoint;
 import put.medicallocator.io.DAOException;
 import put.medicallocator.io.IFacilityDAO;
 import put.medicallocator.io.model.Facility;
@@ -14,16 +13,12 @@ import put.medicallocator.io.sqlite.DatabaseContract.FacilityColumns;
 import put.medicallocator.io.sqlite.DatabaseContract.Queries;
 import put.medicallocator.io.sqlite.DatabaseContract.Queries.FacilityQuery;
 import put.medicallocator.io.sqlite.DatabaseContract.Tables;
-import put.medicallocator.ui.async.SearchCriteria;
+import put.medicallocator.ui.async.model.SearchCriteria;
 import put.medicallocator.utils.GeoUtils;
 import put.medicallocator.utils.MyLog;
 import put.medicallocator.utils.StringUtils;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
-import com.google.android.maps.GeoPoint;
+import java.util.*;
 
 /**
  * {@link DatabaseFacilityDAO} shall be used for querying, deleting, inserting the medical facilities
@@ -43,11 +38,11 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 
 	@Override
     public List<Facility> findWithinArea(GeoPoint lowerLeft, GeoPoint upperRight) throws DAOException {
-		return findNamedWithinArea(lowerLeft, upperRight, null);
+		return findWithinAreaUsingCriteria(lowerLeft, upperRight, null);
 	}
 
 	@Override
-    public List<Facility> findNamedWithinArea(GeoPoint lowerLeft, GeoPoint upperRight, SearchCriteria criteria) throws DAOException {
+    public List<Facility> findWithinAreaUsingCriteria(GeoPoint lowerLeft, GeoPoint upperRight, SearchCriteria criteria) throws DAOException {
 		final StringBuilder selection = new StringBuilder();
 		final List<String> selectionArgs = new ArrayList<String>();
 		
@@ -83,8 +78,8 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 	}
 
     private void addCoordinatesAsArgs(GeoPoint lowerLeft, GeoPoint upperRight, final List<String> selectionArgs) {
-        final double[] minCoords = GeoUtils.convertToDegrees(lowerLeft);
-        final double[] maxCoords = GeoUtils.convertToDegrees(upperRight);
+        final double[] minCoords = GeoUtils.createLatLngArray(lowerLeft);
+        final double[] maxCoords = GeoUtils.createLatLngArray(upperRight);
 
         final double minLatitude = minCoords[0];
         final double minLongitude = minCoords[1];
@@ -147,9 +142,8 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 
 		/* Query the database */
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		final Cursor cursor = db.query(table, projection, selection, selectionArgs, null, null, orderBy);
 
-		return cursor;
+        return db.query(table, projection, selection, selectionArgs, null, null, orderBy);
 	}
 
 	private static List<Facility> createResultList(final Cursor cursor) {
@@ -203,10 +197,9 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
 	
 	private static List<String> getSqlInArgs(Collection<?> values) {
 	    final List<String> args = new ArrayList<String>();
-	    final Iterator<?> iterator = values.iterator();
-	    while (iterator.hasNext()) {
-	        args.add(iterator.next().toString());
-	    }
+        for (Object value : values) {
+            args.add(value.toString());
+        }
 	    return args;
 	}
 

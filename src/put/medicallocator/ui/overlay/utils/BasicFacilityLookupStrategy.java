@@ -1,13 +1,16 @@
 package put.medicallocator.ui.overlay.utils;
 
-import java.util.List;
-
-import put.medicallocator.io.model.Facility;
 import android.graphics.Point;
-
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Projection;
+import put.medicallocator.io.model.Facility;
 
+import java.util.List;
+
+/**
+ * Implementation of {@link FacilityLookupStrategy} iterating over all the {@link Facility}
+ * calculating distances and checking for the nearest one.
+ */
 public class BasicFacilityLookupStrategy implements FacilityLookupStrategy {
 
     /**
@@ -41,7 +44,7 @@ public class BasicFacilityLookupStrategy implements FacilityLookupStrategy {
             }
         }
 
-        if (filterDistantTaps) {
+        if (nearest != null && filterDistantTaps) {
             if (!isWithinPixelRadius(projection, nearest.getLocation(), point, PIXELS_DISTANCE_TO_TAP_ACCEPT)) {
                 return null;
             }

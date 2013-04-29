@@ -2,5 +2,8 @@
 <resources>
     <color name="dialog_text">#cccccc</color>
     <color name="color_list_item_footer">#ff96938e</color>
-    <color name="color_list_view_header">#ffd46100</color>
+    <color name="color_list_view_header">#ff1f1f1f</color>
+
+    <color name="actionbar_overlay_color">#8f000000</color>
+    <color name="view_separator">#FF6A6A6A</color>
 </resources>

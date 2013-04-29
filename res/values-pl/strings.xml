@@ -4,7 +4,8 @@
 	<string name="app_version">Wersja: %1$s</string>
     <string name="activitymain_initializing_provider">Inicjalizacja źródła danych. Czekaj..</string>
     <string name="activitymain_search">Znajdź</string>
-    <string name="activitymain_enabletracking">Śledzenie położenia</string>
+    <string name="activitymain_enabletracking">Włącz śledzenie położenia</string>
+    <string name="activitymain_disabletracking">Wyłącz śledzenie położenia</string>
     <string name="activitymain_about">O aplikacji</string>
     <string name="activitymain_search_hint">Szukaj na mapie</string>
     <string name="activitymain_selectall">Zaznacz wszystko</string>
@@ -23,7 +24,8 @@
     <string name="search_hint">Co chciałbyś znaleźć?</string>
     
     <string name="activitymain_loading">Szukam..</string>
-    
+    <string name="activitymain_type_filter_all_enabled">Dowolnego typu..</string>
+
     <string name="facilitytype_centre">Centrum</string>
     <string name="facilitytype_dentist">Dentysta</string>
     <string name="facilitytype_eye_doctor">Okulista</string>

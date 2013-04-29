@@ -3,10 +3,17 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingTop="0dip"
-    android:paddingBottom="0dip"
-    android:paddingRight="2dip"
-    android:background="@color/color_list_view_header" 
-    >
-    <TextView android:text="text" android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@android:id/text1" android:textColor="@android:color/white" android:textAppearance="?android:attr/textAppearanceSmall" android:ellipsize="marquee" android:lines="1" android:scrollHorizontally="true"></TextView>
+    android:padding="2dp"
+    android:background="@color/color_list_view_header">
+
+    <TextView
+        android:text="text"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:id="@android:id/text1"
+        android:textColor="@android:color/white"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:ellipsize="marquee"
+        android:lines="1"
+        android:scrollHorizontally="true"></TextView>
 </LinearLayout>

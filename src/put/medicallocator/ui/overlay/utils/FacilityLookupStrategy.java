@@ -1,10 +1,12 @@
 package put.medicallocator.ui.overlay.utils;
 
-import put.medicallocator.io.model.Facility;
-
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Projection;
+import put.medicallocator.io.model.Facility;
 
+/**
+ * Interface describing contract for components which provide searching capabilities through {@link Facility} dataset.
+ */
 public interface FacilityLookupStrategy {
 
     /**

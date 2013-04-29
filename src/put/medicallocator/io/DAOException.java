@@ -1,6 +1,9 @@
 package put.medicallocator.io;
 
-public class DAOException extends Exception {
+/**
+ * Generic {@link RuntimeException} associated with the {@link IFacilityDAO}.
+ */
+public class DAOException extends RuntimeException {
 
 	private static final long serialVersionUID = 20120524160000L;
 

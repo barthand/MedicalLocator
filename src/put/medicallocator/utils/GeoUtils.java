@@ -2,31 +2,38 @@ package put.medicallocator.utils;
 
 import com.google.android.maps.GeoPoint;
 
-public class GeoUtils {
+public final class GeoUtils {
 
 	private static final double MIN_LAT = Math.toRadians(-90d);  // -PI/2
 	private static final double MAX_LAT = Math.toRadians(90d);   //  PI/2
 	private static final double MIN_LON = Math.toRadians(-180d); // -PI
 	private static final double MAX_LON = Math.toRadians(180d);  //  PI
-	
-	public static GeoPoint convertToGeoPoint(double latitude, double longitude) {
+
+    /**
+     * Builds the {@link GeoPoint} based on provided coordinates.
+     */
+	public static GeoPoint createGeoPoint(double latitude, double longitude) {
 		return new GeoPoint(
-				(int) (latitude * Math.pow(10, 6)), 
-				(int) (longitude * Math.pow(10, 6)));
+				(int) (latitude * 1E6),
+				(int) (longitude * 1E6));
 	}
-	
-	public static double[] convertToDegrees(GeoPoint point) {
+
+    /**
+     * Builds the coordinates (latitude, longitude pair), based on provided {@code point}.
+     */
+	public static double[] createLatLngArray(GeoPoint point) {
 		return new double[] {
-				point.getLatitudeE6() / Math.pow(10, 6), 
-				point.getLongitudeE6() / Math.pow(10, 6)
+				point.getLatitudeE6() / 1E6,
+				point.getLongitudeE6() / 1E6
 		};
 	}
 	
-	/** Returns the distance from one point to another in kilometers */
+	/**
+     * Returns the distance calculated from one point (build based on {@code lat1}, {@code lng1}))
+     * to another ({@code lat2}, {@code lng2}. Distance is provided in kilometers.
+     */
 	public static double getDistanceFrom(double lat1, double lng1, double lat2, double lng2) {
 	    double earthRadius = 6371.0008;
-	    /* Uncomment this to get the value in miles */
-	    //double earthRadius = 3958.75;
 	    double dLat = Math.toRadians(lat2-lat1);
 	    double dLng = Math.toRadians(lng2-lng1);
 	    double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -49,18 +56,15 @@ public class GeoUtils {
 	 * @param distance the distance from the point represented by {@code startPoint} 
 	 * location instance. Must be measured in the same unit as the radius
 	 * argument.
-	 * @param radius the radius of the sphere, e.g. the average radius for a
-	 * spherical approximation of the figure of the Earth is approximately
-	 * 6371.01 kilometers.
 	 */
 	public static GeoPoint[] boundingCoordinates(double distance, GeoPoint startPoint) {
 		final double radius = 6371.0008;
 		
-		if (radius < 0d || distance < 0d)
+		if (distance < 0d)
 			throw new IllegalArgumentException();
 
-		final double radLat = Math.toRadians(convertToDegrees(startPoint)[0]);
-		final double radLon = Math.toRadians(convertToDegrees(startPoint)[1]);
+		final double radLat = Math.toRadians(createLatLngArray(startPoint)[0]);
+		final double radLon = Math.toRadians(createLatLngArray(startPoint)[1]);
 		
 		// angular distance in radians on a great circle
 		double radDist = distance / radius;
@@ -85,11 +89,12 @@ public class GeoUtils {
 		}
 
 		return new GeoPoint[]{
-				convertToGeoPoint(Math.toDegrees(minLat), Math.toDegrees(minLon)),
-				convertToGeoPoint(Math.toDegrees(maxLat), Math.toDegrees(maxLon))
+				createGeoPoint(Math.toDegrees(minLat), Math.toDegrees(minLon)),
+				createGeoPoint(Math.toDegrees(maxLat), Math.toDegrees(maxLon))
 		};
 	}
 
 	private GeoUtils() {
+        // Disallow new instances.
 	}
 }

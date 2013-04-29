@@ -1,12 +1,12 @@
 package put.medicallocator.io.sqlite;
 
+import android.database.Cursor;
+import android.provider.BaseColumns;
+import com.google.android.maps.GeoPoint;
+import put.medicallocator.io.IFacilityDAO;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.model.FacilityType;
 import put.medicallocator.utils.GeoUtils;
-import android.database.Cursor;
-import android.provider.BaseColumns;
-
-import com.google.android.maps.GeoPoint;
 
 /**
  * Contract class to be used when interacting with {@link DatabaseFacilityDAO}.
@@ -25,13 +25,16 @@ class DatabaseContract {
      */
     protected static final int DATABASE_VERSION = 3;
 
+    /**
+     * Stores names of all the tables.
+     */
 	interface Tables {
 		String FACILITY = "facility";
 	}
 	
 	/**
 	 * Interface defining all columns which shall be available for the Facility.
-	 * This information is especially valuable for implementations of {@link IFacilityProvider}.
+	 * This information is especially valuable for implementations of {@link IFacilityDAO}.
 	 */
 	interface FacilityColumns extends BaseColumns {
 		public static final String NAME = "name";
@@ -44,17 +47,9 @@ class DatabaseContract {
 		public static final String TYPE = "type";
 	}
 
-	interface FacilityColumnsDefinitions {
-		String PARAM_ID = "INTEGER PRIMARY KEY AUTOINCREMENT";
-		String PARAM_NAME = "TEXT NOT NULL";
-		String PARAM_ADDRESS = "TEXT NOT NULL";
-		String PARAM_PHONE = "TEXT";
-		String PARAM_EMAIL = "TEXT";
-		String PARAM_WWW = "TEXT";
-		String PARAM_LATITUDE = "REAL";
-		String PARAM_LONGITUDE  = "REAL";
-	}
-
+    /**
+     * Contains the queries.
+     */
 	static class Queries {
 
 	    interface StandardCheckRawQuery {
@@ -101,7 +96,7 @@ class DatabaseContract {
 			final double longitude = cursor.getDouble(FacilityQuery.LONGITUDE);
 			final int type = cursor.getInt(FacilityQuery.TYPE);
 
-			final GeoPoint geoPoint = GeoUtils.convertToGeoPoint(latitude, longitude);
+			final GeoPoint geoPoint = GeoUtils.createGeoPoint(latitude, longitude);
 
 			final Facility facility = new Facility();
 			facility.setName(name);

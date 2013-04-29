@@ -2,6 +2,9 @@ package put.medicallocator.io.model;
 
 import com.google.android.maps.GeoPoint;
 
+/**
+ * Entity model class for mapping the facility attributes.
+ */
 public class Facility {
 
 	private String id;

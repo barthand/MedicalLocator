@@ -1,22 +1,22 @@
 package put.medicallocator.ui.overlay;
 
-import java.util.List;
-
+import android.graphics.Canvas;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.view.MotionEvent;
+import com.google.android.maps.*;
 import junit.framework.Assert;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.ui.overlay.utils.FacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
 import put.medicallocator.utils.MyLog;
-import android.graphics.Canvas;
-import android.graphics.Point;
-import android.graphics.drawable.Drawable;
-import android.view.MotionEvent;
 
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
-import com.google.android.maps.Projection;
+import java.util.List;
 
+/**
+ * {@link Overlay} used to draw markers on the {@link MapView}. For the performance reasons,
+ * the {@link ItemizedOverlay} is not used here for every single marker.
+ */
 public class FacilitiesOverlay extends Overlay {
 
     /* TODO (just some loose ideas):
@@ -35,13 +35,13 @@ public class FacilitiesOverlay extends Overlay {
     private static final String TAG = FacilitiesOverlay.class.getSimpleName();
     
     private final List<Facility> source;
-    private final DrawableCache drawableCache;
+    private final FacilityTypeDrawableCache drawableCache;
     private final FacilityTapListener tapListener;
     private final FacilityLookupStrategy lookupStrategy;
     
     private int lastTouchAction;
     
-    FacilitiesOverlay(List<Facility> source, DrawableCache drawableCache, FacilityLookupStrategy lookupStrategy, FacilityTapListener listener) {
+    FacilitiesOverlay(List<Facility> source, FacilityTypeDrawableCache drawableCache, FacilityLookupStrategy lookupStrategy, FacilityTapListener listener) {
         this.source = source;
         this.drawableCache = drawableCache;
         this.tapListener = listener;

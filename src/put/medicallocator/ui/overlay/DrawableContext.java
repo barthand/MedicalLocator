@@ -2,6 +2,9 @@ package put.medicallocator.ui.overlay;
 
 import android.graphics.drawable.Drawable;
 
+/**
+ * Wrapper class for {@link Drawable}, providing information about its dimensions.
+ */
 public class DrawableContext {
     final Drawable drawable;
     final int halfWidth;

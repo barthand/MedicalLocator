@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Variation on the Light theme that turns off the title -->
-    <style name="Theme.MedicalLocator" parent="android:style/Theme.Light">
-        <item name="android:windowNoTitle">true</item>
+    <style name="Theme.MedicalLocator.ActionBarOverlay" parent="style/Theme.Sherlock">
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="windowActionBarOverlay">true</item>
+        <item name="android:actionBarStyle">@style/Widget.MedicalLocator.ActionBarStyle</item>
+        <item name="actionBarStyle">@style/Widget.MedicalLocator.ActionBarStyle</item>
     </style>
-    
+
+    <style name="Theme.MedicalLocator" parent="style/Theme.Sherlock">
+    </style>
+
+    <style name="Theme.MedicalLocator.Light" parent="style/Theme.Sherlock.Light">
+    </style>
+
+    <style name="Widget.MedicalLocator.ActionBarStyle" parent="Widget.Sherlock.ActionBar">
+        <item name="android:background">#8f000000</item>
+        <item name="background">#8f000000</item>
+    </style>
+
     <style name="DialogButton">
         <item name="android:layout_height">40dip</item>
     </style>
@@ -22,14 +36,10 @@
 
     <style name="ListItem">
         <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
-        <item name="android:paddingLeft">10dip</item>
-        <item name="android:paddingRight">10dip</item>
+        <item name="android:paddingLeft">8dip</item>
+        <item name="android:paddingRight">8dip</item>
         <item name="android:paddingTop">8dip</item>
         <item name="android:paddingBottom">8dip</item>
     </style>
-    
-    <style name="CheckBoxStyle">
-        <item name="android:textColor">@android:color/white</item>
-    </style>
-    
+
 </resources>

@@ -2,6 +2,9 @@ package put.medicallocator.ui.overlay.utils;
 
 import put.medicallocator.io.model.Facility;
 
+/**
+ * Simple listener providing callback for tapping on certain {@link Facility}.
+ */
 public interface FacilityTapListener {
 
     /**

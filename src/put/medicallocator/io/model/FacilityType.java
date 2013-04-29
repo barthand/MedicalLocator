@@ -1,11 +1,16 @@
 package put.medicallocator.io.model;
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import put.medicallocator.R;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import put.medicallocator.R;
-
+/**
+ * Enum representing the types available in {@link Facility} objects.
+ */
 public enum FacilityType {
 
     CENTRE(0, R.drawable.marker, R.string.facilitytype_centre),
@@ -39,20 +44,39 @@ public enum FacilityType {
         this.stringId = stringId;
     }
 
+    /**
+     * Returns ID that is associated with particular {@link FacilityType} in the dataset.
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * Returns ID of the {@link Drawable} (from resources) that is associated with this {@link FacilityType}.
+     */
     public int getDrawableId() {
         return drawableId;
     }
-    
+
+    /**
+     * Returns ID of the String resource that is associated with this {@link FacilityType}.
+     */
     public int getStringId() {
         return stringId;
     }
 
+    /**
+     * Returns {@link FacilityType} associated with particular ID.
+     */
     public static FacilityType getById(Integer id) {
         return FACILITY_TYPE_MAP.get(id);
     }
-    
+
+    /**
+     * Returns the string label associated with this {@link FacilityType}.
+     */
+    public String getLabel(Context context) {
+        return context.getString(this.getStringId());
+    }
+
 }
