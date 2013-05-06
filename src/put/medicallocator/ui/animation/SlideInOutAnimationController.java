@@ -14,9 +14,19 @@ public class SlideInOutAnimationController implements InOutAnimationController {
     private final View view;
     private final ViewPropertyAnimator animator;
 
+    private final Animator.AnimatorListener animationEndListener;
+
     public SlideInOutAnimationController(View view) {
         this.view = view;
         animator = ViewPropertyAnimator.animate(view);
+
+        animationEndListener = new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                ViewHelper.setTranslationX(SlideInOutAnimationController.this.view, 0);
+                SlideInOutAnimationController.this.view.setVisibility(View.GONE);
+            }
+        };
     }
 
     @Override
@@ -24,17 +34,10 @@ public class SlideInOutAnimationController implements InOutAnimationController {
         view.setVisibility(View.VISIBLE);
         ViewHelper.setAlpha(view, 0f);
         ViewHelper.setTranslationX(view, -view.getWidth());
-        animator.alpha(1f).translationX(0).setListener(null).start();
+        animator.setListener(null).alpha(1f).translationX(0).start();
     }
 
     public void animateOut() {
-        animator.alpha(0f).translationX(view.getWidth()).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                view.setVisibility(View.GONE);
-                ViewHelper.setTranslationX(view, 0);
-                ViewHelper.setAlpha(view, 1f);
-            }
-        }).start();
+        animator.setListener(animationEndListener).alpha(0f).translationX(view.getWidth()).start();
     }
 }

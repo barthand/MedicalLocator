@@ -42,4 +42,9 @@
         <item name="android:paddingBottom">8dip</item>
     </style>
 
+    <style name="SlidingSpinnerButtonStyle">
+        <item name="android:background">@drawable/abs__spinner_ab_holo_dark</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
 </resources>

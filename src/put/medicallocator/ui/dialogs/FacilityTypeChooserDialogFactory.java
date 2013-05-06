@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.util.SparseBooleanArray;
+import android.widget.ListView;
 import put.medicallocator.io.model.FacilityType;
 import put.medicallocator.ui.async.model.SearchCriteria;
 import put.medicallocator.utils.CollectionUtils;
@@ -36,7 +37,14 @@ public class FacilityTypeChooserDialogFactory implements DialogFactory {
         final MultichoiceContextDescriber describer = new MultichoiceContextDescriber(context, types, criteria);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMultiChoiceItems(describer.labels, describer.checked, null);
+        builder.setMultiChoiceItems(describer.labels, describer.checked, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                // Android 2.3.5 bugfix (if checkedItems parameter is provided, then this custom listener is needed).
+                final ListView list = ((AlertDialog) dialog).getListView();
+                list.setItemChecked(which, isChecked);
+            }
+        });
 
         final OnFacilitiesTypesSelectedListener listener = this.listener;
         final DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {

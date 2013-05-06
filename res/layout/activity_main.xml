@@ -25,8 +25,8 @@
         android:visibility="gone">
 
         <Button
+            style="@style/SlidingSpinnerButtonStyle"
             android:id="@+id/facilitytype_spinner"
-            android:background="@drawable/abs__spinner_ab_holo_dark"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/activitymain_type_filter_all_enabled"/>
