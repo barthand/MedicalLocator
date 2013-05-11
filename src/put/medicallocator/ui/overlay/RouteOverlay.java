@@ -85,7 +85,7 @@ public class RouteOverlay extends Overlay {
                     .getLongitudeE6()) / 2);
             GeoPoint moveTo = new GeoPoint(moveToLat, moveToLong);
 
-            MapController mapController = mv.getController();
+            final MapController mapController = mv.getController();
             mapController.animateTo(moveTo);
 
             innerPaint.setColor(0x28D7FF);

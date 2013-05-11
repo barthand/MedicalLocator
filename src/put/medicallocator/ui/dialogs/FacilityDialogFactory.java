@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -56,11 +57,18 @@ public class FacilityDialogFactory implements DialogFactory {
         View layout = inflater.inflate(R.layout.dialog_facility_bubble, null);
         initializeViews(layout);
 
-        // Create the Dialog itself.
-        this.dialog = new AlertDialog.Builder(context).setView(layout).create();
-        this.dialog.setTitle(context.getString(R.string.dialogfacilitybubble_title));
+        final Drawable facilityDrawable = context.getResources().getDrawable(
+                facility.getFacilityType().getDrawableId());
 
-        return this.dialog;
+        final TextView textView = (TextView) inflater.inflate(R.layout.dialog_facility_title, null);
+        textView.setCompoundDrawablesWithIntrinsicBounds(facilityDrawable, null, null, null);
+        textView.setText(context.getString(facility.getFacilityType().getStringId()));
+
+        // Create the Dialog itself.
+        return this.dialog = new AlertDialog.Builder(context)
+                .setView(layout)
+                .setCustomTitle(textView)
+                .create();
     }
 
     /**

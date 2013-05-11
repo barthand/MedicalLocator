@@ -47,4 +47,9 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
+    <style name="FacilityDialogTitleStyle" parent="android:TextAppearance.DialogWindowTitle">
+        <item name="android:padding">5dp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
 </resources>
