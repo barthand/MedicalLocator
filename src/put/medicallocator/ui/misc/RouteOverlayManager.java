@@ -30,20 +30,16 @@ public class RouteOverlayManager {
     public void showRoute(RouteSpec route) {
         List<Overlay> listOfOverlays = mapView.getOverlays();
         listOfOverlays.remove(routeOverlay);
-        buildOverlay(route);
+        routeOverlay = new RouteOverlay(route, mapView);
         state.routeSpec = route;
         listOfOverlays.add(routeOverlay);
         mapView.invalidate();
     }
 
-    private void buildOverlay(RouteSpec route) {
-        this.routeOverlay = new RouteOverlay(route, mapView);
-    }
-
     public RouteOverlay getOrRestoreRoute(RouteSpec route) {
         if (route != null) {
             if (routeOverlay == null) {
-                buildOverlay(route);
+                this.routeOverlay = new RouteOverlay(route, mapView);
             }
             return routeOverlay;
         }

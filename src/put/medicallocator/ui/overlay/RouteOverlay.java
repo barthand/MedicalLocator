@@ -30,6 +30,9 @@ public class RouteOverlay extends Overlay {
     /** Defines the width of the path inner part. */
     private static final int INNER_LINE_WIDTH = 4;
 
+    /** Defines the lat/lng span (multipled by 10^6) to be included additionally when route is displayed. */
+    private static final int SPAN_OF_TOLERANCE_E6 = 25000;
+
     /** Used to define path inner part look. */
     private final Paint innerPaint;
 
@@ -71,22 +74,34 @@ public class RouteOverlay extends Overlay {
         this.bitmap = Bitmap.createBitmap(mv.getWidth(), mv.getHeight(), Bitmap.Config.ARGB_8888);
         this.bitmapCanvas = new Canvas(bitmap);
 
+        int minLat = Integer.MAX_VALUE, minLng = Integer.MAX_VALUE, maxLat = Integer.MIN_VALUE, maxLng = Integer.MIN_VALUE;
+
         if (ArrayUtils.isNotEmpty(route.getPoints())) {
             for (int i = 0; i < route.getPoints().length; i++) {
                 points.add(new GeoPoint(
                         (int) (route.getPoints()[i].getLatitude() * 1E6),
                         (int) (route.getPoints()[i].getLongitude() * 1E6)));
+
+                final int currentLatitude = points.get(i).getLatitudeE6();
+                final int currentLongitude = points.get(i).getLongitudeE6();
+
+                minLat = minLat > currentLatitude ? currentLatitude : minLat;
+                minLng = minLng > currentLongitude ? currentLongitude : minLng;
+                maxLat = maxLat < currentLatitude ? currentLatitude : maxLat;
+                maxLng = maxLng < currentLongitude ? currentLongitude : maxLng;
             }
-            int moveToLat = (points.get(0).getLatitudeE6() + (points.get(
-                    points.size() - 1).getLatitudeE6() - points.get(0)
-                    .getLatitudeE6()) / 2);
-            int moveToLong = (points.get(0).getLongitudeE6() + (points.get(
-                    points.size() - 1).getLongitudeE6() - points.get(0)
-                    .getLongitudeE6()) / 2);
+
+            final int latSpan = maxLat - minLat;
+            final int lngSpan = maxLng - minLng;
+
+            final int moveToLat = (minLat + latSpan / 2);
+            final int moveToLong = (minLng + lngSpan / 2);
+
             GeoPoint moveTo = new GeoPoint(moveToLat, moveToLong);
 
             final MapController mapController = mv.getController();
             mapController.animateTo(moveTo);
+            mapController.zoomToSpan(latSpan + SPAN_OF_TOLERANCE_E6, lngSpan + SPAN_OF_TOLERANCE_E6);
 
             innerPaint.setColor(0x28D7FF);
             innerPaint.setStyle(Paint.Style.STROKE);
