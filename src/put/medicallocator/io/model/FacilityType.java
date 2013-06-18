@@ -2,11 +2,12 @@ package put.medicallocator.io.model;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import put.medicallocator.R;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import put.medicallocator.R;
 
 /**
  * Enum representing the types available in {@link Facility} objects.
@@ -17,7 +18,7 @@ public enum FacilityType {
     DENTIST(1, R.drawable.marker_blue, R.string.facilitytype_dentist),
     EYE_DOCTOR(2, R.drawable.marker_cyan, R.string.facilitytype_eye_doctor),
     GYNECOLOGIST(3, R.drawable.marker_pink, R.string.facilitytype_gynecologist),
-    DOCTOR(4, R.drawable.marker_red, R.string.facilitytype_doctor),
+    DOCTOR(4, R.drawable.marker_green, R.string.facilitytype_doctor),
     HOSPITAL(5, R.drawable.marker_yellow, R.string.facilitytype_hospital),
     AMBULATORY(6, R.drawable.marker, R.string.facilitytype_ambulatory),
     OTHER(100, R.drawable.marker, R.string.facilitytype_other);
