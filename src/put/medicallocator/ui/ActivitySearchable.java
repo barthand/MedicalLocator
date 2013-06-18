@@ -7,10 +7,22 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.SectionIndexer;
+import android.widget.TextView;
+
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.MenuItem;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import put.medicallocator.R;
+import put.medicallocator.application.Application;
 import put.medicallocator.io.IFacilityDAO;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.sqlite.DatabaseFacilityDAO;
@@ -21,10 +33,6 @@ import put.medicallocator.ui.dialogs.FacilityDialogFactory;
 import put.medicallocator.ui.intent.ShowBubbleIntentHandler;
 import put.medicallocator.ui.utils.AlphabetArrayIndexer;
 import put.medicallocator.utils.MyLog;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * Activity providing to the user {@link ListView} with {@link Facility} objects.
@@ -50,7 +58,7 @@ public class ActivitySearchable extends SherlockListActivity implements Facility
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_searchable);
 
-        facilityDao = new DatabaseFacilityDAO(getApplicationContext());
+        facilityDao = new DatabaseFacilityDAO((Application) this.getApplication());
         facilityWorker = new AsyncFacilityWorkerHandler(this);
 
         progressBar = (ProgressBar) findViewById(R.id.search_progressbar);

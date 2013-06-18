@@ -24,6 +24,7 @@ import com.google.android.maps.Overlay;
 import java.util.List;
 
 import put.medicallocator.R;
+import put.medicallocator.application.Application;
 import put.medicallocator.io.helper.DataSourceConfigurator;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.model.FacilityType;
@@ -185,7 +186,7 @@ public class ActivityMain extends SherlockMapActivity
         initializeMapView(this.mapView, this.state);
 
         /* Do other structures initialization*/
-        this.queryController = new QueryController(getApplicationContext(), mapView, this.state.criteria, this);
+        this.queryController = new QueryController((Application) getApplication(), mapView, this.state.criteria, this);
         this.routeOverlayManager = new RouteOverlayManager(mapView, state);
 
         this.locationOverlay = new MyLocationOverlay(this, mapView);

@@ -4,8 +4,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
+
+import java.util.List;
+
+import put.medicallocator.application.Application;
 import put.medicallocator.io.IFacilityDAO;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.sqlite.DatabaseFacilityDAO;
@@ -13,8 +18,6 @@ import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryExecu
 import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListener;
 import put.medicallocator.ui.async.model.SearchCriteria;
 import put.medicallocator.utils.GeoUtils;
-
-import java.util.List;
 
 /**
  * Controls how the querying is being scheduled based on the {@link MapView} state.
@@ -66,15 +69,15 @@ public class QueryController {
      * Simple constructor of {@link QueryController}. Since it creates internally a Handler to post messages on the UI thread,
      * it <b>has to be invoked in the UI thread</b> (or at least created in the thread running a {@link Looper}).
      */
-    public QueryController(Context context, MapView mapView, SearchCriteria criteria, FacilityQueryListener listener) {
-        this(context, mapView, criteria, listener, new Handler());
+    public QueryController(Application application, MapView mapView, SearchCriteria criteria, FacilityQueryListener listener) {
+        this(application, mapView, criteria, listener, new Handler());
     }
 
     /**
      * Extended constructor of {@link QueryController}, allowing more custom initialization.
      */
-    public QueryController(Context context, MapView mapView, SearchCriteria criteria, FacilityQueryListener listener, Handler handler) {
-        this.facilityDao = new DatabaseFacilityDAO(context);
+    public QueryController(Application application, MapView mapView, SearchCriteria criteria, FacilityQueryListener listener, Handler handler) {
+        this.facilityDao = new DatabaseFacilityDAO(application);
         this.mapView = mapView;
         this.criteria = criteria;
         this.listenerDelegate = listener;

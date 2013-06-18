@@ -4,7 +4,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import com.google.android.maps.GeoPoint;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import put.medicallocator.application.Application;
 import put.medicallocator.io.DAOException;
 import put.medicallocator.io.IFacilityDAO;
 import put.medicallocator.io.model.Facility;
@@ -18,22 +27,20 @@ import put.medicallocator.utils.GeoUtils;
 import put.medicallocator.utils.MyLog;
 import put.medicallocator.utils.StringUtils;
 
-import java.util.*;
-
 /**
  * {@link DatabaseFacilityDAO} shall be used for querying, deleting, inserting the medical facilities
  * which are backed in SQLite database.
  */
 public class DatabaseFacilityDAO implements IFacilityDAO {
 
-    /* TODO: Some DB connections/cursors are not properly closed. Investigate. */
-
     private static final String TAG = "DatabaseProvider";
 
+    private final Application application;
     private final DatabaseOpenHelper dbHelper;
 
-    public DatabaseFacilityDAO(Context context) {
-        dbHelper = new DatabaseOpenHelper(context);
+    public DatabaseFacilityDAO(Application application) {
+        this.application = application;
+        this.dbHelper = new DatabaseOpenHelper(application);
     }
 
     @Override
@@ -141,9 +148,20 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
                 "selection[" + selection + "], selectionArgs[" + Arrays.toString(selectionArgs) + "]");
 
 		/* Query the database */
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
 
         return db.query(table, projection, selection, selectionArgs, null, null, orderBy);
+    }
+
+    private SQLiteDatabase getReadableDatabase() {
+        if (application.getReadableDatabase() == null) {
+            synchronized (application) {
+                if (application.getReadableDatabase() == null) {
+                    application.setReadableDatabase(dbHelper.getReadableDatabase());
+                }
+            }
+        }
+        return application.getReadableDatabase();
     }
 
     private static List<Facility> createResultList(final Cursor cursor) {
