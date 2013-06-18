@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
 import com.actionbarsherlock.app.SherlockMapActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -19,6 +20,9 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
+
+import java.util.List;
+
 import put.medicallocator.R;
 import put.medicallocator.io.helper.DataSourceConfigurator;
 import put.medicallocator.io.model.Facility;
@@ -44,8 +48,6 @@ import put.medicallocator.utils.AsyncTaskUtils;
 import put.medicallocator.utils.LocationManagerUtils;
 import put.medicallocator.utils.MyLog;
 import put.medicallocator.utils.StringUtils;
-
-import java.util.List;
 
 // TODO: Close DB connection, since it leaks from time to time.
 // TODO: Roboguice?
@@ -189,6 +191,7 @@ public class ActivityMain extends SherlockMapActivity
         this.locationOverlay = new MyLocationOverlay(this, mapView);
         this.myLocationListener = new MapLocationListener(mapView, state);
 
+        locationOverlay.runOnFirstFix(onFirstFixRunnable);
         setSupportProgressBarIndeterminate(true);
         getSherlock().setProgressBarIndeterminateVisibility(true);
 
@@ -397,7 +400,6 @@ public class ActivityMain extends SherlockMapActivity
 
     private void restoreOverlays() {
         locationOverlay.enableMyLocation();
-        locationOverlay.runOnFirstFix(onFirstFixRunnable);
         mapView.getOverlays().add(locationOverlay);
     }
 
