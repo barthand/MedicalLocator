@@ -7,20 +7,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.SectionIndexer;
-import android.widget.TextView;
-
+import android.widget.*;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.MenuItem;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import put.medicallocator.R;
 import put.medicallocator.application.Application;
 import put.medicallocator.io.IFacilityDAO;
@@ -33,6 +22,10 @@ import put.medicallocator.ui.dialogs.FacilityDialogFactory;
 import put.medicallocator.ui.intent.ShowBubbleIntentHandler;
 import put.medicallocator.ui.utils.AlphabetArrayIndexer;
 import put.medicallocator.utils.MyLog;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Activity providing to the user {@link ListView} with {@link Facility} objects.
@@ -128,7 +121,7 @@ public class ActivitySearchable extends SherlockListActivity implements Facility
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         final Facility facility = (Facility) l.getItemAtPosition(position);
-        new FacilityDialogFactory(this, facility, null).createDialog(this).show();
+        new FacilityDialogFactory(this, facility).createDialog(this).show();
     }
 
     private void doSearch(final String query) {

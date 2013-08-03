@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-
 import com.actionbarsherlock.app.SherlockMapActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -20,9 +19,6 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
-
-import java.util.List;
-
 import put.medicallocator.R;
 import put.medicallocator.application.Application;
 import put.medicallocator.io.helper.DataSourceConfigurator;
@@ -40,6 +36,7 @@ import put.medicallocator.ui.dialogs.FacilityDialogFactory;
 import put.medicallocator.ui.dialogs.FacilityTypeChooserDialogFactory;
 import put.medicallocator.ui.intent.IntentHandler;
 import put.medicallocator.ui.intent.ShowBubbleIntentHandler;
+import put.medicallocator.ui.intent.ShowRouteIntentHandler;
 import put.medicallocator.ui.location.MapLocationListener;
 import put.medicallocator.ui.misc.RouteOverlayManager;
 import put.medicallocator.ui.overlay.FaciltiesOverlayBuilder;
@@ -49,6 +46,8 @@ import put.medicallocator.utils.AsyncTaskUtils;
 import put.medicallocator.utils.LocationManagerUtils;
 import put.medicallocator.utils.MyLog;
 import put.medicallocator.utils.StringUtils;
+
+import java.util.List;
 
 // TODO: Close DB connection, since it leaks from time to time.
 // TODO: Roboguice?
@@ -172,8 +171,6 @@ public class ActivityMain extends SherlockMapActivity
             }
         });
 
-        this.intentHandlers = new IntentHandler[]{new ShowBubbleIntentHandler(this, mapView)};
-
         /* Retrieve the state object if Configuration (f.e. orientation) change occured */
         restoreLastState();
 
@@ -197,6 +194,13 @@ public class ActivityMain extends SherlockMapActivity
         getSherlock().setProgressBarIndeterminateVisibility(true);
 
         updateChosenTypesButton();
+
+        this.intentHandlers = new IntentHandler[]{
+                new ShowBubbleIntentHandler(this, mapView),
+                new ShowRouteIntentHandler(routeOverlayManager)
+        };
+
+        restoreIntentHandlersState();
     }
 
     @Override
@@ -221,6 +225,9 @@ public class ActivityMain extends SherlockMapActivity
     @Override
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+
+        MyLog.d(TAG, "onNewIntent @ " + this.getClass().getSimpleName());
+
         for (IntentHandler handler : intentHandlers) {
             if (handler.supports(intent)) {
                 handler.process(intent);
@@ -331,14 +338,17 @@ public class ActivityMain extends SherlockMapActivity
     protected void restoreLastState() {
         if (getLastNonConfigurationInstance() instanceof State) {
             this.state = (State) getLastNonConfigurationInstance();
-            for (IntentHandler handler : intentHandlers) {
-                final Object handlerState = state.intentHandlersState.get(handler.getClass());
-                if (handlerState != null) {
-                    handler.restoreState(handlerState);
-                }
-            }
         } else {
             this.state = new State();
+        }
+    }
+
+    protected void restoreIntentHandlersState() {
+        for (IntentHandler handler : intentHandlers) {
+            final Object handlerState = state.intentHandlersState.get(handler.getClass());
+            if (handlerState != null) {
+                handler.restoreState(handlerState);
+            }
         }
     }
 
@@ -352,7 +362,7 @@ public class ActivityMain extends SherlockMapActivity
 
     @Override
     public void onFacilityTap(Facility facility) {
-        new FacilityDialogFactory(this, facility, routeOverlayManager).createDialog(this).show();
+        new FacilityDialogFactory(this, facility).createDialog(this).show();
     }
 
     @Override

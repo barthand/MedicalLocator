@@ -1,9 +1,14 @@
 package put.medicallocator.io.route.model;
 
+import java.io.Serializable;
+
 /**
  * Data structure defining any route point (stores its name and coordinates).
  */
-public class RoutePoint {
+public class RoutePoint implements Serializable {
+
+    private static final long serialVersionUID = 7077414845842613494L;
+
     private String name;
     private double latitude;
     private double longitude;

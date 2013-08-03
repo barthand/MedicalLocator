@@ -21,9 +21,9 @@ import put.medicallocator.R;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.route.DirectionApiRouteProvider;
 import put.medicallocator.io.route.model.RoutePoint;
+import put.medicallocator.io.route.model.RouteSpec;
 import put.medicallocator.ui.location.LastLocationStrategy;
 import put.medicallocator.ui.misc.RouteDownloadAsyncTask;
-import put.medicallocator.ui.misc.RouteOverlayManager;
 import put.medicallocator.utils.MyLog;
 import put.medicallocator.utils.StringUtils;
 
@@ -38,17 +38,15 @@ public class FacilityDialogFactory implements DialogFactory {
     private final LayoutInflater inflater;
     private final LocationManager locationManager;
     private final LastLocationStrategy lastLocationStrategy;
-    private final RouteOverlayManager routeOverlayManager;
 
     private Dialog dialog;
 
-    public FacilityDialogFactory(Context context, Facility facility, RouteOverlayManager routeOverlayManager) {
+    public FacilityDialogFactory(Context context, Facility facility) {
         this.context = context;
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         this.lastLocationStrategy = new LastLocationStrategy();
         this.facility = facility;
-        this.routeOverlayManager = routeOverlayManager;
     }
 
     @Override
@@ -146,7 +144,7 @@ public class FacilityDialogFactory implements DialogFactory {
         }
 
         final Location currentLocation = getBestSuitableLastLocation();
-        if (routeOverlayManager != null && currentLocation != null && isConnectionAvailable()) {
+        if (currentLocation != null && isConnectionAvailable()) {
             routeButton.setEnabled(true);
             routeButton.setOnClickListener(new OnClickListener() {
 
@@ -162,13 +160,13 @@ public class FacilityDialogFactory implements DialogFactory {
                     finishPoint.setLongitude(facility.getLocation().getLongitudeE6() / 1E6);
 
                     final DirectionApiRouteProvider routeProvider = new DirectionApiRouteProvider(startPoint, finishPoint);
-                    final RouteDownloadAsyncTask.DownloadListener downloadListener = new RouteDownloadAsyncTask.DownloadListener() {
+                    new RouteDownloadAsyncTask(context, routeProvider) {
                         @Override
-                        public void finished(boolean success) {
+                        protected void onPostExecute(RouteSpec routeSpec) {
+                            super.onPostExecute(routeSpec);
                             dialog.dismiss();
                         }
-                    };
-                    new RouteDownloadAsyncTask(context, routeProvider, routeOverlayManager, downloadListener).execute();
+                    }.execute();
                 }
             });
         } else {
