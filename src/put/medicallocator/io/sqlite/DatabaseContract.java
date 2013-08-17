@@ -87,6 +87,7 @@ class DatabaseContract {
          */
         public static Facility getFacility(Cursor cursor) {
             /* Read straight from the Cursor */
+            final Long id = cursor.getLong(FacilityQuery._ID);
             final String name = cursor.getString(FacilityQuery.NAME);
             final String address = cursor.getString(FacilityQuery.ADDRESS);
             final String phone = cursor.getString(FacilityQuery.PHONE);
@@ -99,6 +100,7 @@ class DatabaseContract {
             final GeoPoint geoPoint = GeoUtils.createGeoPoint(latitude, longitude);
 
             final Facility facility = new Facility();
+            facility.setId(id);
             facility.setName(name);
             facility.setAddress(address);
             facility.setPhone(phone);

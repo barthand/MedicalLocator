@@ -4,15 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
 import com.google.android.maps.GeoPoint;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
 import put.medicallocator.application.Application;
 import put.medicallocator.io.DAOException;
 import put.medicallocator.io.IFacilityDAO;
@@ -26,6 +18,8 @@ import put.medicallocator.ui.async.model.SearchCriteria;
 import put.medicallocator.utils.GeoUtils;
 import put.medicallocator.utils.MyLog;
 import put.medicallocator.utils.StringUtils;
+
+import java.util.*;
 
 /**
  * {@link DatabaseFacilityDAO} shall be used for querying, deleting, inserting the medical facilities
@@ -132,7 +126,18 @@ public class DatabaseFacilityDAO implements IFacilityDAO {
         } finally {
             safeCloseCursor(cursor);
         }
+    }
 
+    @Override
+    public Facility findById(Long id) throws DAOException {
+        final String selection = FacilityColumns._ID + " = ?";
+        final String[] selectionArgs = new String[] { String.valueOf(id) };
+        final Cursor cursor = queryDB(Tables.FACILITY, FacilityQuery.PROJECTION, selection, selectionArgs, null);
+        try {
+            return cursor.moveToFirst() ? Queries.getFacility(cursor) : null;
+        } finally {
+            safeCloseCursor(cursor);
+        }
     }
 
     private Cursor queryDB(final String table, final String[] projection,

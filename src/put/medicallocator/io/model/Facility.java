@@ -7,7 +7,7 @@ import com.google.android.maps.GeoPoint;
  */
 public class Facility {
 
-    private String id;
+    private Long id;
     private String name;
     private String address;
     private String phone;
@@ -16,11 +16,11 @@ public class Facility {
     private GeoPoint location;
     private FacilityType facilityType;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

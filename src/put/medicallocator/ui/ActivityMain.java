@@ -24,6 +24,7 @@ import put.medicallocator.application.Application;
 import put.medicallocator.io.helper.DataSourceConfigurator;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.model.FacilityType;
+import put.medicallocator.io.sqlite.DatabaseFacilityDAO;
 import put.medicallocator.ui.animation.InOutAnimationController;
 import put.medicallocator.ui.animation.SlideInOutAnimationController;
 import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListener;
@@ -39,6 +40,7 @@ import put.medicallocator.ui.intent.ShowBubbleIntentHandler;
 import put.medicallocator.ui.intent.ShowRouteIntentHandler;
 import put.medicallocator.ui.location.MapLocationListener;
 import put.medicallocator.ui.misc.RouteOverlayManager;
+import put.medicallocator.ui.overlay.FacilityTypeDrawableCache;
 import put.medicallocator.ui.overlay.FaciltiesOverlayBuilder;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
 import put.medicallocator.ui.utils.State;
@@ -94,6 +96,8 @@ public class ActivityMain extends SherlockMapActivity
     private QueryController queryController;
 
     private RouteOverlayManager routeOverlayManager;
+
+    private FacilityTypeDrawableCache drawableCache;
 
     private final Runnable onFirstFixRunnable = new Runnable() {
 
@@ -183,8 +187,9 @@ public class ActivityMain extends SherlockMapActivity
         initializeMapView(this.mapView, this.state);
 
         /* Do other structures initialization*/
+        this.drawableCache = new FacilityTypeDrawableCache(this);
         this.queryController = new QueryController((Application) getApplication(), mapView, this.state.criteria, this);
-        this.routeOverlayManager = new RouteOverlayManager(mapView, state);
+        this.routeOverlayManager = new RouteOverlayManager(mapView, drawableCache, state);
 
         this.locationOverlay = new MyLocationOverlay(this, mapView);
         this.myLocationListener = new MapLocationListener(mapView, state);
@@ -197,7 +202,7 @@ public class ActivityMain extends SherlockMapActivity
 
         this.intentHandlers = new IntentHandler[]{
                 new ShowBubbleIntentHandler(this, mapView),
-                new ShowRouteIntentHandler(routeOverlayManager)
+                new ShowRouteIntentHandler(routeOverlayManager, new DatabaseFacilityDAO((Application) getApplication()))
         };
 
         restoreIntentHandlersState();
@@ -380,10 +385,10 @@ public class ActivityMain extends SherlockMapActivity
             MyLog.d(TAG, "Removing overlays from the MapView");
             overlays.add(locationOverlay);
         } else {
-            overlays.add(new FaciltiesOverlayBuilder(this).buildOverlay(result, this));
+            overlays.add(new FaciltiesOverlayBuilder(drawableCache).buildOverlay(result, this));
             overlays.add(locationOverlay);
-            if (state.routeSpec != null) {
-                overlays.add(routeOverlayManager.getOrRestoreRoute(state.routeSpec));
+            if (state.routeInformation != null) {
+                overlays.add(routeOverlayManager.getOrRestoreOverlay(state.routeInformation));
             }
         }
 

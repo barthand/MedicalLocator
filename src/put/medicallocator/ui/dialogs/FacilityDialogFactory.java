@@ -160,7 +160,7 @@ public class FacilityDialogFactory implements DialogFactory {
                     finishPoint.setLongitude(facility.getLocation().getLongitudeE6() / 1E6);
 
                     final DirectionApiRouteProvider routeProvider = new DirectionApiRouteProvider(startPoint, finishPoint);
-                    new RouteDownloadAsyncTask(context, routeProvider) {
+                    new RouteDownloadAsyncTask(context, routeProvider, facility) {
                         @Override
                         protected void onPostExecute(RouteSpec routeSpec) {
                             super.onPostExecute(routeSpec);

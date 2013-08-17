@@ -33,4 +33,9 @@ public interface IFacilityDAO {
      */
     List<Facility> findWithKeyword(String keyword) throws DAOException;
 
+    /**
+     * Retrieves the {@link Facility} using its ID.
+     */
+    Facility findById(Long id) throws DAOException;
+
 }

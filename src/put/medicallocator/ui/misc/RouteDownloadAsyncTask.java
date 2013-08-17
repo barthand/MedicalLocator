@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import put.medicallocator.R;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.route.base.AbstractRouteOverHttpProvider;
 import put.medicallocator.io.route.base.RouteAsyncTask;
 import put.medicallocator.io.route.model.RouteSpec;
@@ -18,9 +19,12 @@ public class RouteDownloadAsyncTask extends RouteAsyncTask {
 
     private final Context context;
 
-    public RouteDownloadAsyncTask(Context context, AbstractRouteOverHttpProvider routeProvider) {
+    private final Facility targetFacility;
+
+    public RouteDownloadAsyncTask(Context context, AbstractRouteOverHttpProvider routeProvider, Facility targetFacility) {
         super(routeProvider);
         this.context = context;
+        this.targetFacility = targetFacility;
     }
 
     @Override
@@ -29,7 +33,7 @@ public class RouteDownloadAsyncTask extends RouteAsyncTask {
         if (routeSpec != null) {
             final Intent intent = new Intent(context, ActivityMain.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            ShowRouteIntentHandler.setupIntent(intent, routeSpec);
+            ShowRouteIntentHandler.setupIntent(intent, routeSpec, targetFacility.getId());
             context.startActivity(intent);
         } else {
             final String text = context.getResources().

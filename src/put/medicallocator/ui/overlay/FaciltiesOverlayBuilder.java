@@ -1,6 +1,5 @@
 package put.medicallocator.ui.overlay;
 
-import android.content.Context;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.ui.overlay.utils.FacilityLookupStrategy;
 import put.medicallocator.ui.overlay.utils.FacilityTapListener;
@@ -15,8 +14,8 @@ public class FaciltiesOverlayBuilder {
 
     private final FacilityTypeDrawableCache drawableCache;
 
-    public FaciltiesOverlayBuilder(Context context) {
-        this.drawableCache = new FacilityTypeDrawableCache(context);
+    public FaciltiesOverlayBuilder(FacilityTypeDrawableCache cache) {
+        this.drawableCache = cache;
     }
 
     /**

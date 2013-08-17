@@ -1,8 +1,11 @@
 package put.medicallocator.ui.overlay;
 
 import android.graphics.*;
+import android.graphics.drawable.Drawable;
 import com.google.android.maps.*;
+import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.route.model.RouteSpec;
+import put.medicallocator.ui.model.RouteInformation;
 import put.medicallocator.utils.ArrayUtils;
 import put.medicallocator.utils.MyLog;
 
@@ -34,13 +37,13 @@ public class RouteOverlay extends Overlay {
     private static final int SPAN_OF_TOLERANCE_E6 = 25000;
 
     /** Used to define path inner part look. */
-    private final Paint innerPaint;
+    private final Paint innerPaint = new Paint();
 
     /** Used to define path outer part (stroking) look. */
-    private final Paint outerPaint;
+    private final Paint outerPaint = new Paint();
 
     /** Collects all the points creating the actual route. */
-    private final ArrayList<GeoPoint> points;
+    private final ArrayList<GeoPoint> points = new ArrayList<GeoPoint>();
 
     /** Cached path instance used to draw the route. */
     private final Path path = new Path();
@@ -53,6 +56,12 @@ public class RouteOverlay extends Overlay {
 
     /** {@link Canvas} to facilitate drawing on the {@link Bitmap} (using CPU). */
     private final Canvas bitmapCanvas;
+
+    /** {@link Facility} being a target of the route. It's here to always draw the route's target point. */
+    private final Facility targetFacility;
+
+    /** Shared instance of {@link FacilityTypeDrawableCache} used to draw the {@link #targetFacility}. */
+    private final FacilityTypeDrawableCache drawableCache;
 
     /** Last span of the longitude. Used to detect whether zoom changed. */
     private int lastLongitudeSpan = Integer.MIN_VALUE;
@@ -67,15 +76,15 @@ public class RouteOverlay extends Overlay {
      * Constructor. Creates internal structures and caches everything what possible to avoid creating any objects
      * in drawing itself.
      */
-    public RouteOverlay(RouteSpec route, MapView mv) {
-        this.points = new ArrayList<GeoPoint>();
-        this.innerPaint = new Paint();
-        this.outerPaint = new Paint();
+    public RouteOverlay(RouteInformation routeInfo, FacilityTypeDrawableCache drawableCache, MapView mv) {
         this.bitmap = Bitmap.createBitmap(mv.getWidth(), mv.getHeight(), Bitmap.Config.ARGB_8888);
         this.bitmapCanvas = new Canvas(bitmap);
+        this.targetFacility = routeInfo.getTargetFacility();
+        this.drawableCache = drawableCache;
 
         int minLat = Integer.MAX_VALUE, minLng = Integer.MAX_VALUE, maxLat = Integer.MIN_VALUE, maxLng = Integer.MIN_VALUE;
 
+        final RouteSpec route = routeInfo.getRouteSpec();
         if (ArrayUtils.isNotEmpty(route.getPoints())) {
             for (int i = 0; i < route.getPoints().length; i++) {
                 points.add(new GeoPoint(
@@ -99,21 +108,9 @@ public class RouteOverlay extends Overlay {
 
             GeoPoint moveTo = new GeoPoint(moveToLat, moveToLong);
 
-            final MapController mapController = mv.getController();
-            mapController.animateTo(moveTo);
-            mapController.zoomToSpan(latSpan + SPAN_OF_TOLERANCE_E6, lngSpan + SPAN_OF_TOLERANCE_E6);
+            moveAndAnimateBySpan(mv, latSpan, lngSpan, moveTo);
 
-            innerPaint.setColor(0x28D7FF);
-            innerPaint.setStyle(Paint.Style.STROKE);
-            innerPaint.setStrokeWidth(INNER_LINE_WIDTH);
-            innerPaint.setAntiAlias(false);
-            innerPaint.setAlpha(0x80);
-
-            outerPaint.setColor(0x1E9AFF);
-            outerPaint.setStyle(Paint.Style.STROKE);
-            outerPaint.setStrokeWidth(INNER_LINE_WIDTH * 2);
-            outerPaint.setAntiAlias(true);
-            outerPaint.setAlpha(0xAB);
+            initPaints();
         }
 
         MyLog.d(TAG, "Initializion done");
@@ -128,15 +125,19 @@ public class RouteOverlay extends Overlay {
         }
 
         buildPath(mapView);
+        drawPathsUsingTranslate();
+        drawTargetOverlayOnBitmap(mapView);
 
+        canvas.drawBitmap(bitmap, 0f, 0f, null);
+    }
+
+    private void drawPathsUsingTranslate() {
         bitmapCanvas.save();
         bitmapCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         bitmapCanvas.translate(offset.x, offset.y);
         bitmapCanvas.drawPath(path, outerPaint);
         bitmapCanvas.drawPath(path, innerPaint);
         bitmapCanvas.restore();
-
-        canvas.drawBitmap(bitmap, 0f, 0f, null);
     }
 
     /**
@@ -168,6 +169,36 @@ public class RouteOverlay extends Overlay {
         }
 
         return path;
+    }
+
+    private void drawTargetOverlayOnBitmap(MapView mapView) {
+        mapView.getProjection().toPixels(targetFacility.getLocation(), point);
+
+        final DrawableContext drawableContext = drawableCache.get(targetFacility.getFacilityType());
+        final Drawable drawable = drawableContext.drawable;
+        drawable.setBounds(point.x - drawableContext.halfWidth, point.y - drawableContext.halfHeight,
+                point.x + drawableContext.halfWidth, point.y + drawableContext.halfHeight);
+        drawable.draw(bitmapCanvas);
+    }
+
+    private void moveAndAnimateBySpan(MapView mv, int latSpan, int lngSpan, GeoPoint moveTo) {
+        final MapController mapController = mv.getController();
+        mapController.animateTo(moveTo);
+        mapController.zoomToSpan(latSpan + SPAN_OF_TOLERANCE_E6, lngSpan + SPAN_OF_TOLERANCE_E6);
+    }
+
+    private void initPaints() {
+        innerPaint.setColor(0x28D7FF);
+        innerPaint.setStyle(Paint.Style.STROKE);
+        innerPaint.setStrokeWidth(INNER_LINE_WIDTH);
+        innerPaint.setAntiAlias(false);
+        innerPaint.setAlpha(0x80);
+
+        outerPaint.setColor(0x1E9AFF);
+        outerPaint.setStyle(Paint.Style.STROKE);
+        outerPaint.setStrokeWidth(INNER_LINE_WIDTH * 2);
+        outerPaint.setAntiAlias(true);
+        outerPaint.setAlpha(0xAB);
     }
 
 }

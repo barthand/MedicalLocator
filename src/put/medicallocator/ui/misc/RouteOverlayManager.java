@@ -3,6 +3,8 @@ package put.medicallocator.ui.misc;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import put.medicallocator.io.route.model.RouteSpec;
+import put.medicallocator.ui.model.RouteInformation;
+import put.medicallocator.ui.overlay.FacilityTypeDrawableCache;
 import put.medicallocator.ui.overlay.RouteOverlay;
 import put.medicallocator.ui.utils.State;
 
@@ -16,30 +18,32 @@ public class RouteOverlayManager {
 
     private final MapView mapView;
     private final State state;
+    private final FacilityTypeDrawableCache drawableCache;
 
     private RouteOverlay routeOverlay;
 
-    public RouteOverlayManager(MapView mapView, State state) {
+    public RouteOverlayManager(MapView mapView, FacilityTypeDrawableCache drawableCache, State state) {
         this.mapView = mapView;
         this.state = state;
+        this.drawableCache = drawableCache;
     }
 
     /**
      * Creates the {@link RouteOverlay} and shows it on the {@link MapView}.
      */
-    public void showRoute(RouteSpec route) {
+    public void showRoute(RouteInformation routeInfo) {
         List<Overlay> listOfOverlays = mapView.getOverlays();
         listOfOverlays.remove(routeOverlay);
-        routeOverlay = new RouteOverlay(route, mapView);
-        state.routeSpec = route;
+        routeOverlay = new RouteOverlay(routeInfo, drawableCache, mapView);
+        state.routeInformation = routeInfo;
         listOfOverlays.add(routeOverlay);
         mapView.invalidate();
     }
 
-    public RouteOverlay getOrRestoreRoute(RouteSpec route) {
+    public RouteOverlay getOrRestoreOverlay(RouteInformation route) {
         if (route != null) {
             if (routeOverlay == null) {
-                this.routeOverlay = new RouteOverlay(route, mapView);
+                this.routeOverlay = new RouteOverlay(route, drawableCache, mapView);
             }
             return routeOverlay;
         }
@@ -51,6 +55,6 @@ public class RouteOverlayManager {
      */
     public void clearRoute() {
         this.routeOverlay = null;
-        state.routeSpec = null;
+        state.routeInformation = null;
     }
 }

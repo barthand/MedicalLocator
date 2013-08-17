@@ -7,7 +7,7 @@ import put.medicallocator.ui.ActivityMain;
 import put.medicallocator.ui.async.DataSourceConfigurerAsyncTask;
 import put.medicallocator.ui.async.model.SearchCriteria;
 import put.medicallocator.ui.intent.IntentHandler;
-import put.medicallocator.ui.overlay.RouteOverlay;
+import put.medicallocator.ui.model.RouteInformation;
 import put.medicallocator.utils.GeoUtils;
 
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class State {
     public final SearchCriteria criteria;
 
     /** Stores the {@link RouteSpec} (if present). */
-    public RouteSpec routeSpec;
+    public RouteInformation routeInformation;
 
     public Map<Class<? extends IntentHandler>, Object> intentHandlersState = new HashMap<Class<? extends IntentHandler>, Object>();
 
