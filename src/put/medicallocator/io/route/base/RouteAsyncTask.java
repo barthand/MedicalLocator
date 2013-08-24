@@ -2,12 +2,12 @@ package put.medicallocator.io.route.base;
 
 import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import put.medicallocator.io.route.model.RouteSpec;
+import put.medicallocator.utils.MyLog;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +33,7 @@ public abstract class RouteAsyncTask extends AsyncTask<Void, Void, RouteSpec> {
         InputStream is = null;
         try {
             final String url = routeProvider.buildUrl();
-            Log.d(TAG, "Retrieving route from URL: " + url);
+            MyLog.d(TAG, "Retrieving route from URL: " + url);
             is = getHttpInputStream(url);
             if (is != null) {
                 return routeProvider.parseRoute(is);
