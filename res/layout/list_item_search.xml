@@ -36,11 +36,6 @@
             android:scrollHorizontally="true"/>
     </LinearLayout>
 
-    <View
-        android:layout_height="fill_parent"
-        android:layout_width="1px"
-        android:background="@color/view_separator"/>
-
     <ImageButton
         android:id="@+id/showOnMapButton"
         android:layout_width="wrap_content"
@@ -48,6 +43,7 @@
         android:layout_marginRight="5dp"
         android:layout_marginLeft="5dp"
         android:contentDescription="description"
-        android:src="@android:drawable/arrow_up_float"/>
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_go_to"/>
 
 </LinearLayout>
