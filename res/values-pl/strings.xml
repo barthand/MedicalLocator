@@ -34,5 +34,8 @@
     <string name="facilitytype_hospital">Szpital</string>
     <string name="facilitytype_ambulatory">Ambulatorium</string>
     <string name="facilitytype_other">Inne</string>
-    
+
+    <string name="credits">Podziękowania</string>
+    <string name="dialogcredits_credits">Aby dostarczyć jak najlepsze wrażenia podczas korzystania z tej aplikacji, zostały wykorzystane zewnętrzne biblioteki.\n\nWielkie dzięki dla:\n\n<b>Jake Wharton\'a</b> za ActionBarSherlock (http://actionbarsherlock.com) i NineOldAndroids (http://nineoldandroids.com/)\n<b>Nicolas Mollet\'a</b> za Map Icons Collection (http://mapicons.nicolasmollet.com)</string>
+
 </resources>

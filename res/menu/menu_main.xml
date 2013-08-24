@@ -20,4 +20,8 @@
         android:title="@string/activitymain_about"
         android:showAsAction="never"/>
 
+    <item android:id="@+id/menu_credits"
+        android:title="@string/credits"
+        android:showAsAction="never"/>
+
 </menu>

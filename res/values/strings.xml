@@ -34,4 +34,7 @@
     <string name="facilitytype_hospital">Hospital</string>
     <string name="facilitytype_ambulatory">Ambulatory</string>
     <string name="facilitytype_other">Other</string>
+
+    <string name="credits">Credits</string>
+    <string name="dialogcredits_credits">This project uses external libraries to provide you with good UI experience.\n\nMany thanks to:\n\n<b>Jake Wharton</b> for ActionBarSherlock (http://actionbarsherlock.com) and NineOldAndroids (http://nineoldandroids.com/)\n<b>Nicolas Mollet</b> for Map Icons Collection (http://mapicons.nicolasmollet.com)</string>
 </resources>

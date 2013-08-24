@@ -31,10 +31,7 @@ import put.medicallocator.ui.async.AsyncFacilityWorkerHandler.FacilityQueryListe
 import put.medicallocator.ui.async.DataSourceConfigurerAsyncTask;
 import put.medicallocator.ui.async.DataSourceConfigurerAsyncTask.DataSourceInitializerListener;
 import put.medicallocator.ui.async.QueryController;
-import put.medicallocator.ui.dialogs.AboutDialogFactory;
-import put.medicallocator.ui.dialogs.DataSourceConfigurationDialogFactory;
-import put.medicallocator.ui.dialogs.FacilityDialogFactory;
-import put.medicallocator.ui.dialogs.FacilityTypeChooserDialogFactory;
+import put.medicallocator.ui.dialogs.*;
 import put.medicallocator.ui.intent.IntentHandler;
 import put.medicallocator.ui.intent.ShowBubbleIntentHandler;
 import put.medicallocator.ui.intent.ShowRouteIntentHandler;
@@ -67,7 +64,8 @@ public class ActivityMain extends SherlockMapActivity
     private interface DialogKeys {
         int DATASOURCE_INIT_DIALOG = 1;
         int ABOUT_DIALOG = 2;
-        int FACILITY_TYPE_CHOOSER_DIALOG = 3;
+        int CREDITS_DIALOG = 3;
+        int FACILITY_TYPE_CHOOSER_DIALOG = 4;
     }
 
     /**
@@ -312,6 +310,9 @@ public class ActivityMain extends SherlockMapActivity
             case R.id.menu_toggle_tracking:
                 state.isTrackingEnabled = !state.isTrackingEnabled;
                 return true;
+            case R.id.menu_credits:
+                showDialog(DialogKeys.CREDITS_DIALOG);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -324,6 +325,8 @@ public class ActivityMain extends SherlockMapActivity
                 return new DataSourceConfigurationDialogFactory().createDialog(this);
             case DialogKeys.ABOUT_DIALOG:
                 return new AboutDialogFactory().createDialog(this);
+            case DialogKeys.CREDITS_DIALOG:
+                return new CreditsDialogFactory().createDialog(this);
             case DialogKeys.FACILITY_TYPE_CHOOSER_DIALOG:
                 return new FacilityTypeChooserDialogFactory(state.criteria, facilitiesTypesSelectedListener).createDialog(this);
         }
