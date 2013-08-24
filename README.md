@@ -1,39 +1,29 @@
 # Medical Locator
 
-This Android (1.6+) platform application gives you ability to search for a medical facilities near you.
+This application displays you medical facilities located near you. And that's not all.
 
-## Available features
+## Features
 
 **Medical Locator**: what does it do?
 
-* shows all the medical facilites within specified area as markers,
-* allows you to freely choose any shown marker and afterwards gives you some detailed information about it, specifically:
-     * name,
-     * address,
-     * phone number,
-     * e-mail, webpage address
-* depending on available data, allows you to:
-     * call the facility,
-     * send the e-mail,
-     * go to the webpage,
-     * find the route to the facility
-* allows you to filter the results, using the following criteria:
-     * area within which the facilities shall be searched for (1-10 km from the current center point of the map),
-     * use the keywords describing the facilities you are interested in
-* allows you to search through the whole database for keywords you specified
-     * Voice Recognition is enabled as well
+* displays different kinds of medical facilites within specified area as markers (corresponding to the facility kind),
+* allows you to freely choose any displayed marker and afterwards provides you with detailed information about it,
+* depending on available data for selected object, you may:
+     * dial the selected facility,
+     * send e-mail to it,
+     * go to their webpage,
+     * find the route to it, starting from your current position.
+* allows you to filter in real-time results presented on map, using either the query matching name of the facility or kind of facility,
+* allows you to search throughout the database using the keywords you'd specify
+     * you may select option to present that particular facility from the result-set on the map
 
-## Requirements
+**Medical Locator** runs on any device supplied with Android OS 1.6 or higher.
 
-**Medical Locator**: What does it need?
-
-* Android smartphone using AndroidOS 1.6 or higher, with the Geolocation module (Cellular Network or GPS)
-* for best experience, the faster the phone is the better UI responsiveness is achieved (use *Filters* to restrict result set)
-
-## Libraries used
+## Libraries/external resources used
 
 * [ActionBarSherlock](http://actionbarsherlock.com/)
 * [NineOldAndroids](http://nineoldandroids.com/)
+* [MapIconsCollection by Nicolas Mollet](http://mapicons.nicolasmollet.com/)
 * [gson](http://code.google.com/p/google-gson/)
 
-Thanks for the authors!
+Many thanks to the authors!
