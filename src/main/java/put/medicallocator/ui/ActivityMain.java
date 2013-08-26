@@ -384,15 +384,12 @@ public class ActivityMain extends SherlockMapActivity
 
         final List<Overlay> overlays = mapView.getOverlays();
         overlays.clear();
-        if (result.size() == 0) {
-            MyLog.d(TAG, "Removing overlays from the MapView");
-            overlays.add(locationOverlay);
-        } else {
+        if (result.size() > 0) {
             overlays.add(new FaciltiesOverlayBuilder(drawableCache).buildOverlay(result, this));
-            overlays.add(locationOverlay);
-            if (state.routeInformation != null) {
-                overlays.add(routeOverlayManager.getOrRestoreOverlay(state.routeInformation));
-            }
+        }
+        overlays.add(locationOverlay);
+        if (state.routeInformation != null) {
+            overlays.add(routeOverlayManager.getOrRestoreOverlay(state.routeInformation));
         }
 
         MyLog.d(TAG, "Posting invalidate on MapView");
