@@ -1,5 +1,8 @@
 package put.medicallocator.utils;
 
+import android.util.Log;
+import put.medicallocator.BuildConfig;
+
 /**
  * Internal class for logging. It is a wrapper class for the {@link android.util.Log} class.
  */
@@ -8,14 +11,7 @@ public final class MyLog {
     /* TODO: Move to the properties file, so this value may change even at the runtime. */
     public static final boolean ASSERT_ENABLED = true;
 
-	/*
-     * In the production release, REMEMBER to change this value.
-	 * TODO: Alternatively:
-	 * - prepare build script for this project,
-	 * - put the {@link #LOGLEVEL} value in some properties file deployed along with the application.
-	 */
-
-    private static final int LOGLEVEL = android.util.Log.VERBOSE;
+    private static final int LOGLEVEL = BuildConfig.DEBUG ? android.util.Log.VERBOSE : Log.ERROR + 1;
 
     private static boolean VERBOSE = LOGLEVEL <= android.util.Log.VERBOSE;
     private static boolean DEBUG = LOGLEVEL <= android.util.Log.DEBUG;

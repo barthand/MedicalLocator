@@ -1,0 +1,49 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.5.+'
+    }
+}
+
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://r.jakewharton.com/maven/release"
+    }
+}
+
+dependencies {
+    compile 'com.actionbarsherlock:actionbarsherlock:4.4.0@aar'
+    compile 'com.android.support:support-v4:18.0.+'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.actionbarsherlock:plugin-maps:4.2.0'
+}
+
+android {
+    compileSdkVersion 'Google Inc.:Google APIs:15'
+    buildToolsVersion '18.0.1'
+
+    signingConfigs {
+        release
+    }
+
+    defaultConfig {
+        minSdkVersion 7
+        targetSdkVersion 17
+    }
+}
+
+// Plug-in signing configuration, if provided.
+if (project.hasProperty('keyAlias')) {
+    android.signingConfigs.release.storeFile = file(storeFile)
+    android.signingConfigs.release.storePassword = storePassword
+    android.signingConfigs.release.keyAlias = keyAlias
+    android.signingConfigs.release.keyPassword = keyPassword
+
+    android.buildTypes.release.signingConfig = android.signingConfigs.release
+}
