@@ -1,4 +1,7 @@
 bin/
 gen/
 .idea/
+*.iml
 libs/
+/build/
+/.gradle/
