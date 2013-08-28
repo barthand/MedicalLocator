@@ -47,3 +47,5 @@ if (project.hasProperty('keyAlias')) {
 
     android.buildTypes.release.signingConfig = android.signingConfigs.release
 }
+
+apply from: 'http://tellurianring.com/projects/gradle-plugins/gradle-release/apply.groovy'
