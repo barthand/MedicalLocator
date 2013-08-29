@@ -17,6 +17,9 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import java.lang.Exception;
+
 import put.medicallocator.R;
 import put.medicallocator.io.model.Facility;
 import put.medicallocator.io.route.DirectionApiRouteProvider;
@@ -24,6 +27,7 @@ import put.medicallocator.io.route.model.RoutePoint;
 import put.medicallocator.io.route.model.RouteSpec;
 import put.medicallocator.ui.location.LastLocationStrategy;
 import put.medicallocator.ui.misc.RouteDownloadAsyncTask;
+import put.medicallocator.utils.IntentUtils;
 import put.medicallocator.utils.MyLog;
 import put.medicallocator.utils.StringUtils;
 
@@ -100,13 +104,19 @@ public class FacilityDialogFactory implements DialogFactory {
         final ImageButton webpageButton = (ImageButton) layout.findViewById(R.id.www_button);
         final ImageButton routeButton = (ImageButton) layout.findViewById(R.id.route_button);
 
-        final OnClickListener onCallClickListener = new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                invokeDialIntent();
-            }
-        };
-        callButton.setOnClickListener(onCallClickListener);
+        final Intent dialIntent = buildDialIntent();
+        if (IntentUtils.isIntentAvailable(context, dialIntent)) {
+            final OnClickListener onDialClickListener = new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    safeInvokeIntent(dialIntent);
+                }
+            };
+            callButton.setOnClickListener(onDialClickListener);
+            callButton.setEnabled(true);
+        } else {
+            callButton.setEnabled(false);
+        }
 
 		/* Do the appropriate UI actions if the e-mail exists */
         if (!StringUtils.isEmpty(facility.getEmail())) {
@@ -183,15 +193,22 @@ public class FacilityDialogFactory implements DialogFactory {
     }
 
     /**
-     * Starts the {@link Intent} to show dial console allowing to call selected {@link Facility}.
+     * Builds the {@link Intent} to show dial console allowing to call selected {@link Facility}.
      */
-    private void invokeDialIntent() {
+    private Intent buildDialIntent() {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + facility.getPhone()));
+        return intent;
+    }
+
+    /**
+     * Safely invokes the {@link Intent}, catching all thrown {@link Exception}s.
+     */
+    private void safeInvokeIntent(Intent intent) {
         try {
-            Intent intent = new Intent(Intent.ACTION_DIAL);
-            intent.setData(Uri.parse("tel:" + facility.getPhone()));
             context.startActivity(intent);
         } catch (Exception e) {
-            MyLog.e(TAG, "Failed to invoke call", e);
+            MyLog.e(TAG, "Failed to invoke intent", e);
         }
     }
 

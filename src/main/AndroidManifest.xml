@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="put.medicallocator"
-      android:versionCode="3"
-      android:versionName="1.1" android:installLocation="auto">
+      android:versionCode="4"
+      android:versionName="1.1.1" android:installLocation="auto">
 
     <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="15"/>
 
@@ -10,7 +10,8 @@
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-	<uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
 
     <application android:icon="@drawable/ic_launcher"
                  android:name=".application.Application"
